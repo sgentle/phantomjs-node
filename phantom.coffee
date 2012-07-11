@@ -3,8 +3,8 @@ express = require 'express'
 child   = require 'child_process'
 
 phanta = []
-startPhantomProcess = (port, args) ->
-  ps = child.spawn 'phantomjs', args.concat [__dirname+'/shim.js', port]
+startPhantomProcess = (port, args, binaryPath) ->
+  ps = child.spawn binaryPath, args.concat [__dirname+'/shim.js', port]
 
   ps.stdout.on 'data', (data) -> console.log "phantom stdout: #{data}"
   ps.stderr.on 'data', (data) -> 
@@ -27,18 +27,19 @@ wrap = (ph) ->
 
 
 
-module.exports = 
-  create: (args..., cb) ->
+module.exports =
+  create: (args..., cb, binaryPath) ->
     app = express.createServer()
     app.use express.static __dirname
-    
     appServer = app.listen()
 
     server = dnode()
 
     phantom = null
 
-    ps = startPhantomProcess appServer.address().port, args
+    binaryPath = binaryPath || 'phantomjs'
+
+    ps = startPhantomProcess appServer.address().port, args, binaryPath
 
     ps.on 'exit', (code) ->
       appServer.close()
@@ -52,6 +53,7 @@ module.exports =
       phantom = conn.remote
       wrap phantom
       phanta.push phantom
+      phantom.__binaryPath = binaryPath
       cb? phantom
 
 
