@@ -1,3 +1,5 @@
+var core_require = require;
+
 var require = function (file, cwd) {
     var resolved = require.resolve(file, cwd || '/');
     var mod = require.modules[resolved];
@@ -1570,11 +1572,11 @@ require.define("/shim.coffee", function (require, module, exports, __dirname, __
   var controlPage, descend, fnwrap, mkweb, mkwrap, pageWrap, port, proto, s, server, webpage, _phantom;
   var __slice = Array.prototype.slice, __hasProp = Object.prototype.hasOwnProperty;
 
-  mkweb = new Function("exports", "window", phantom.loadModuleSource('webpage'));
+  // mkweb = new Function("exports", "window", phantom.loadModuleSource('webpage'));
 
-  webpage = {};
+  webpage = core_require('webpage');
 
-  mkweb.call({}, webpage, {});
+  // mkweb.call({}, webpage, {});
 
   proto = require('dnode-protocol');
 
@@ -1649,6 +1651,10 @@ require.define("/shim.coffee", function (require, module, exports, __dirname, __
         if (cb == null) cb = function() {};
         page.render(file);
         return cb();
+      },
+      cookies: function(cb) {
+        if (cb == null) cb = function () {};
+        cb(page.cookies);
       }
     });
   };
