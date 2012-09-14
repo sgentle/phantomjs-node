@@ -1,15 +1,17 @@
-var require = function (file, cwd) {
+(function(){var require = function (file, cwd) {
     var resolved = require.resolve(file, cwd || '/');
     var mod = require.modules[resolved];
     if (!mod) throw new Error(
         'Failed to resolve module ' + file + ', tried ' + resolved
     );
-    var res = mod._cached ? mod._cached : mod();
+    var cached = require.cache[resolved];
+    var res = cached? cached.exports : mod();
     return res;
 }
 
 require.paths = [];
 require.modules = {};
+require.cache = {};
 require.extensions = [".js",".coffee"];
 
 require._core = {
@@ -26,7 +28,8 @@ require.resolve = (function () {
         
         if (require._core[x]) return x;
         var path = require.modules.path();
-        var y = cwd || '.';
+        cwd = path.resolve('/', cwd);
+        var y = cwd || '/';
         
         if (x.match(/^(?:\.\.?\/|\/)/)) {
             var m = loadAsFileSync(path.resolve(y, x))
@@ -40,6 +43,7 @@ require.resolve = (function () {
         throw new Error("Cannot find module '" + x + "'");
         
         function loadAsFileSync (x) {
+            x = path.normalize(x);
             if (require.modules[x]) {
                 return x;
             }
@@ -52,7 +56,7 @@ require.resolve = (function () {
         
         function loadAsDirectorySync (x) {
             x = x.replace(/\/+$/, '');
-            var pkgfile = x + '/package.json';
+            var pkgfile = path.normalize(x + '/package.json');
             if (require.modules[pkgfile]) {
                 var pkg = require.modules[pkgfile]();
                 var b = pkg.browserify;
@@ -115,7 +119,11 @@ require.alias = function (from, to) {
     }
     var basedir = path.dirname(res);
     
-    var keys = Object_keys(require.modules);
+    var keys = (Object.keys || function (obj) {
+        var res = [];
+        for (var key in obj) res.push(key);
+        return res;
+    })(require.modules);
     
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
@@ -129,60 +137,48 @@ require.alias = function (from, to) {
     }
 };
 
-require.define = function (filename, fn) {
-    var dirname = require._core[filename]
-        ? ''
-        : require.modules.path().dirname(filename)
-    ;
+(function () {
+    var process = {};
     
-    var require_ = function (file) {
-        return require(file, dirname)
+    require.define = function (filename, fn) {
+        if (require.modules.__browserify_process) {
+            process = require.modules.__browserify_process();
+        }
+        
+        var dirname = require._core[filename]
+            ? ''
+            : require.modules.path().dirname(filename)
+        ;
+        
+        var require_ = function (file) {
+            return require(file, dirname);
+        };
+        require_.resolve = function (name) {
+            return require.resolve(name, dirname);
+        };
+        require_.modules = require.modules;
+        require_.define = require.define;
+        require_.cache = require.cache;
+        var module_ = { exports : {} };
+        
+        require.modules[filename] = function () {
+            require.cache[filename] = module_;
+            fn.call(
+                module_.exports,
+                require_,
+                module_,
+                module_.exports,
+                dirname,
+                filename,
+                process
+            );
+            return module_.exports;
+        };
     };
-    require_.resolve = function (name) {
-        return require.resolve(name, dirname);
-    };
-    require_.modules = require.modules;
-    require_.define = require.define;
-    var module_ = { exports : {} };
-    
-    require.modules[filename] = function () {
-        require.modules[filename]._cached = module_.exports;
-        fn.call(
-            module_.exports,
-            require_,
-            module_,
-            module_.exports,
-            dirname,
-            filename
-        );
-        require.modules[filename]._cached = module_.exports;
-        return module_.exports;
-    };
-};
+})();
 
-var Object_keys = Object.keys || function (obj) {
-    var res = [];
-    for (var key in obj) res.push(key)
-    return res;
-};
 
-if (typeof process === 'undefined') process = {};
-
-if (!process.nextTick) process.nextTick = function (fn) {
-    setTimeout(fn, 0);
-};
-
-if (!process.title) process.title = 'browser';
-
-if (!process.binding) process.binding = function (name) {
-    if (name === 'evals') return require('vm')
-    else throw new Error('No such module')
-};
-
-if (!process.cwd) process.cwd = function () { return '.' };
-
-require.define("path", function (require, module, exports, __dirname, __filename) {
-    function filter (xs, fn) {
+require.define("path",function(require,module,exports,__dirname,__filename,process){function filter (xs, fn) {
     var res = [];
     for (var i = 0; i < xs.length; i++) {
         if (fn(xs[i], i, xs)) res.push(xs[i]);
@@ -316,15 +312,61 @@ exports.basename = function(path, ext) {
 exports.extname = function(path) {
   return splitPathRe.exec(path)[3] || '';
 };
-
 });
 
-require.define("/node_modules/dnode-protocol/package.json", function (require, module, exports, __dirname, __filename) {
-    module.exports = {"main":"./index.js"}
+require.define("__browserify_process",function(require,module,exports,__dirname,__filename,process){var process = module.exports = {};
+
+process.nextTick = (function () {
+    var queue = [];
+    var canPost = typeof window !== 'undefined'
+        && window.postMessage && window.addEventListener
+    ;
+    
+    if (canPost) {
+        window.addEventListener('message', function (ev) {
+            if (ev.source === window && ev.data === 'browserify-tick') {
+                ev.stopPropagation();
+                if (queue.length > 0) {
+                    var fn = queue.shift();
+                    fn();
+                }
+            }
+        }, true);
+    }
+    
+    return function (fn) {
+        if (canPost) {
+            queue.push(fn);
+            window.postMessage('browserify-tick', '*');
+        }
+        else setTimeout(fn, 0);
+    };
+})();
+
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+
+process.binding = function (name) {
+    if (name === 'evals') return (require)('vm')
+    else throw new Error('No such module. (Possibly not yet loaded)')
+};
+
+(function () {
+    var cwd = '/';
+    var path;
+    process.cwd = function () { return cwd };
+    process.chdir = function (dir) {
+        if (!path) path = require('path');
+        cwd = path.resolve(dir, cwd);
+    };
+})();
 });
 
-require.define("/node_modules/dnode-protocol/index.js", function (require, module, exports, __dirname, __filename) {
-    var Traverse = require('traverse');
+require.define("/node_modules/dnode-protocol/package.json",function(require,module,exports,__dirname,__filename,process){module.exports = {"main":"./index.js"}});
+
+require.define("/node_modules/dnode-protocol/index.js",function(require,module,exports,__dirname,__filename,process){var Traverse = require('traverse');
 var EventEmitter = require('events').EventEmitter;
 var stream = process.title === 'browser' ? {} : require('stream');
 var json = typeof JSON === 'object' ? JSON : require('jsonify');
@@ -662,15 +704,11 @@ var parseArgs = exports.parseArgs = function (argv) {
     
     return params;
 };
-
 });
 
-require.define("/node_modules/traverse/package.json", function (require, module, exports, __dirname, __filename) {
-    module.exports = {"main":"./index"}
-});
+require.define("/node_modules/dnode-protocol/node_modules/traverse/package.json",function(require,module,exports,__dirname,__filename,process){module.exports = {"main":"./index"}});
 
-require.define("/node_modules/traverse/index.js", function (require, module, exports, __dirname, __filename) {
-    module.exports = Traverse;
+require.define("/node_modules/dnode-protocol/node_modules/traverse/index.js",function(require,module,exports,__dirname,__filename,process){module.exports = Traverse;
 function Traverse (obj) {
     if (!(this instanceof Traverse)) return new Traverse(obj);
     this.value = obj;
@@ -937,17 +975,15 @@ forEach(Object_keys(Traverse.prototype), function (key) {
         return t[key].apply(t, args);
     };
 });
-
 });
 
-require.define("events", function (require, module, exports, __dirname, __filename) {
-    if (!process.EventEmitter) process.EventEmitter = function () {};
+require.define("events",function(require,module,exports,__dirname,__filename,process){if (!process.EventEmitter) process.EventEmitter = function () {};
 
 var EventEmitter = exports.EventEmitter = process.EventEmitter;
 var isArray = typeof Array.isArray === 'function'
     ? Array.isArray
     : function (xs) {
-        return Object.toString.call(xs) === '[object Array]'
+        return Object.prototype.toString.call(xs) === '[object Array]'
     }
 ;
 
@@ -1112,26 +1148,450 @@ EventEmitter.prototype.listeners = function(type) {
   }
   return this._events[type];
 };
-
 });
 
-require.define("stream", function (require, module, exports, __dirname, __filename) {
-    // todo
+require.define("stream",function(require,module,exports,__dirname,__filename,process){var events = require('events');
+var util = require('util');
 
+function Stream() {
+  events.EventEmitter.call(this);
+}
+util.inherits(Stream, events.EventEmitter);
+module.exports = Stream;
+// Backwards-compat with node 0.4.x
+Stream.Stream = Stream;
+
+Stream.prototype.pipe = function(dest, options) {
+  var source = this;
+
+  function ondata(chunk) {
+    if (dest.writable) {
+      if (false === dest.write(chunk) && source.pause) {
+        source.pause();
+      }
+    }
+  }
+
+  source.on('data', ondata);
+
+  function ondrain() {
+    if (source.readable && source.resume) {
+      source.resume();
+    }
+  }
+
+  dest.on('drain', ondrain);
+
+  // If the 'end' option is not supplied, dest.end() will be called when
+  // source gets the 'end' or 'close' events.  Only dest.end() once, and
+  // only when all sources have ended.
+  if (!dest._isStdio && (!options || options.end !== false)) {
+    dest._pipeCount = dest._pipeCount || 0;
+    dest._pipeCount++;
+
+    source.on('end', onend);
+    source.on('close', onclose);
+  }
+
+  var didOnEnd = false;
+  function onend() {
+    if (didOnEnd) return;
+    didOnEnd = true;
+
+    dest._pipeCount--;
+
+    // remove the listeners
+    cleanup();
+
+    if (dest._pipeCount > 0) {
+      // waiting for other incoming streams to end.
+      return;
+    }
+
+    dest.end();
+  }
+
+
+  function onclose() {
+    if (didOnEnd) return;
+    didOnEnd = true;
+
+    dest._pipeCount--;
+
+    // remove the listeners
+    cleanup();
+
+    if (dest._pipeCount > 0) {
+      // waiting for other incoming streams to end.
+      return;
+    }
+
+    dest.destroy();
+  }
+
+  // don't leave dangling pipes when there are errors.
+  function onerror(er) {
+    cleanup();
+    if (this.listeners('error').length === 0) {
+      throw er; // Unhandled stream error in pipe.
+    }
+  }
+
+  source.on('error', onerror);
+  dest.on('error', onerror);
+
+  // remove all the event listeners that were added.
+  function cleanup() {
+    source.removeListener('data', ondata);
+    dest.removeListener('drain', ondrain);
+
+    source.removeListener('end', onend);
+    source.removeListener('close', onclose);
+
+    source.removeListener('error', onerror);
+    dest.removeListener('error', onerror);
+
+    source.removeListener('end', cleanup);
+    source.removeListener('close', cleanup);
+
+    dest.removeListener('end', cleanup);
+    dest.removeListener('close', cleanup);
+  }
+
+  source.on('end', cleanup);
+  source.on('close', cleanup);
+
+  dest.on('end', cleanup);
+  dest.on('close', cleanup);
+
+  dest.emit('pipe', source);
+
+  // Allow for unix-like usage: A.pipe(B).pipe(C)
+  return dest;
+};
 });
 
-require.define("/node_modules/dnode-protocol/node_modules/jsonify/package.json", function (require, module, exports, __dirname, __filename) {
-    module.exports = {"main":"index.js"}
+require.define("util",function(require,module,exports,__dirname,__filename,process){var events = require('events');
+
+exports.print = function () {};
+exports.puts = function () {};
+exports.debug = function() {};
+
+exports.inspect = function(obj, showHidden, depth, colors) {
+  var seen = [];
+
+  var stylize = function(str, styleType) {
+    // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+    var styles =
+        { 'bold' : [1, 22],
+          'italic' : [3, 23],
+          'underline' : [4, 24],
+          'inverse' : [7, 27],
+          'white' : [37, 39],
+          'grey' : [90, 39],
+          'black' : [30, 39],
+          'blue' : [34, 39],
+          'cyan' : [36, 39],
+          'green' : [32, 39],
+          'magenta' : [35, 39],
+          'red' : [31, 39],
+          'yellow' : [33, 39] };
+
+    var style =
+        { 'special': 'cyan',
+          'number': 'blue',
+          'boolean': 'yellow',
+          'undefined': 'grey',
+          'null': 'bold',
+          'string': 'green',
+          'date': 'magenta',
+          // "name": intentionally not styling
+          'regexp': 'red' }[styleType];
+
+    if (style) {
+      return '\033[' + styles[style][0] + 'm' + str +
+             '\033[' + styles[style][1] + 'm';
+    } else {
+      return str;
+    }
+  };
+  if (! colors) {
+    stylize = function(str, styleType) { return str; };
+  }
+
+  function format(value, recurseTimes) {
+    // Provide a hook for user-specified inspect functions.
+    // Check that value is an object with an inspect function on it
+    if (value && typeof value.inspect === 'function' &&
+        // Filter out the util module, it's inspect function is special
+        value !== exports &&
+        // Also filter out any prototype objects using the circular check.
+        !(value.constructor && value.constructor.prototype === value)) {
+      return value.inspect(recurseTimes);
+    }
+
+    // Primitive types cannot have properties
+    switch (typeof value) {
+      case 'undefined':
+        return stylize('undefined', 'undefined');
+
+      case 'string':
+        var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
+                                                 .replace(/'/g, "\\'")
+                                                 .replace(/\\"/g, '"') + '\'';
+        return stylize(simple, 'string');
+
+      case 'number':
+        return stylize('' + value, 'number');
+
+      case 'boolean':
+        return stylize('' + value, 'boolean');
+    }
+    // For some reason typeof null is "object", so special case here.
+    if (value === null) {
+      return stylize('null', 'null');
+    }
+
+    // Look up the keys of the object.
+    var visible_keys = Object_keys(value);
+    var keys = showHidden ? Object_getOwnPropertyNames(value) : visible_keys;
+
+    // Functions without properties can be shortcutted.
+    if (typeof value === 'function' && keys.length === 0) {
+      if (isRegExp(value)) {
+        return stylize('' + value, 'regexp');
+      } else {
+        var name = value.name ? ': ' + value.name : '';
+        return stylize('[Function' + name + ']', 'special');
+      }
+    }
+
+    // Dates without properties can be shortcutted
+    if (isDate(value) && keys.length === 0) {
+      return stylize(value.toUTCString(), 'date');
+    }
+
+    var base, type, braces;
+    // Determine the object type
+    if (isArray(value)) {
+      type = 'Array';
+      braces = ['[', ']'];
+    } else {
+      type = 'Object';
+      braces = ['{', '}'];
+    }
+
+    // Make functions say that they are functions
+    if (typeof value === 'function') {
+      var n = value.name ? ': ' + value.name : '';
+      base = (isRegExp(value)) ? ' ' + value : ' [Function' + n + ']';
+    } else {
+      base = '';
+    }
+
+    // Make dates with properties first say the date
+    if (isDate(value)) {
+      base = ' ' + value.toUTCString();
+    }
+
+    if (keys.length === 0) {
+      return braces[0] + base + braces[1];
+    }
+
+    if (recurseTimes < 0) {
+      if (isRegExp(value)) {
+        return stylize('' + value, 'regexp');
+      } else {
+        return stylize('[Object]', 'special');
+      }
+    }
+
+    seen.push(value);
+
+    var output = keys.map(function(key) {
+      var name, str;
+      if (value.__lookupGetter__) {
+        if (value.__lookupGetter__(key)) {
+          if (value.__lookupSetter__(key)) {
+            str = stylize('[Getter/Setter]', 'special');
+          } else {
+            str = stylize('[Getter]', 'special');
+          }
+        } else {
+          if (value.__lookupSetter__(key)) {
+            str = stylize('[Setter]', 'special');
+          }
+        }
+      }
+      if (visible_keys.indexOf(key) < 0) {
+        name = '[' + key + ']';
+      }
+      if (!str) {
+        if (seen.indexOf(value[key]) < 0) {
+          if (recurseTimes === null) {
+            str = format(value[key]);
+          } else {
+            str = format(value[key], recurseTimes - 1);
+          }
+          if (str.indexOf('\n') > -1) {
+            if (isArray(value)) {
+              str = str.split('\n').map(function(line) {
+                return '  ' + line;
+              }).join('\n').substr(2);
+            } else {
+              str = '\n' + str.split('\n').map(function(line) {
+                return '   ' + line;
+              }).join('\n');
+            }
+          }
+        } else {
+          str = stylize('[Circular]', 'special');
+        }
+      }
+      if (typeof name === 'undefined') {
+        if (type === 'Array' && key.match(/^\d+$/)) {
+          return str;
+        }
+        name = JSON.stringify('' + key);
+        if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+          name = name.substr(1, name.length - 2);
+          name = stylize(name, 'name');
+        } else {
+          name = name.replace(/'/g, "\\'")
+                     .replace(/\\"/g, '"')
+                     .replace(/(^"|"$)/g, "'");
+          name = stylize(name, 'string');
+        }
+      }
+
+      return name + ': ' + str;
+    });
+
+    seen.pop();
+
+    var numLinesEst = 0;
+    var length = output.reduce(function(prev, cur) {
+      numLinesEst++;
+      if (cur.indexOf('\n') >= 0) numLinesEst++;
+      return prev + cur.length + 1;
+    }, 0);
+
+    if (length > 50) {
+      output = braces[0] +
+               (base === '' ? '' : base + '\n ') +
+               ' ' +
+               output.join(',\n  ') +
+               ' ' +
+               braces[1];
+
+    } else {
+      output = braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+    }
+
+    return output;
+  }
+  return format(obj, (typeof depth === 'undefined' ? 2 : depth));
+};
+
+
+function isArray(ar) {
+  return ar instanceof Array ||
+         Array.isArray(ar) ||
+         (ar && ar !== Object.prototype && isArray(ar.__proto__));
+}
+
+
+function isRegExp(re) {
+  return re instanceof RegExp ||
+    (typeof re === 'object' && Object.prototype.toString.call(re) === '[object RegExp]');
+}
+
+
+function isDate(d) {
+  if (d instanceof Date) return true;
+  if (typeof d !== 'object') return false;
+  var properties = Date.prototype && Object_getOwnPropertyNames(Date.prototype);
+  var proto = d.__proto__ && Object_getOwnPropertyNames(d.__proto__);
+  return JSON.stringify(proto) === JSON.stringify(properties);
+}
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+              'Oct', 'Nov', 'Dec'];
+
+// 26 Feb 16:19:34
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()),
+              pad(d.getMinutes()),
+              pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+}
+
+exports.log = function (msg) {};
+
+exports.pump = null;
+
+var Object_keys = Object.keys || function (obj) {
+    var res = [];
+    for (var key in obj) res.push(key);
+    return res;
+};
+
+var Object_getOwnPropertyNames = Object.getOwnPropertyNames || function (obj) {
+    var res = [];
+    for (var key in obj) {
+        if (Object.hasOwnProperty.call(obj, key)) res.push(key);
+    }
+    return res;
+};
+
+var Object_create = Object.create || function (prototype, properties) {
+    // from es5-shim
+    var object;
+    if (prototype === null) {
+        object = { '__proto__' : null };
+    }
+    else {
+        if (typeof prototype !== 'object') {
+            throw new TypeError(
+                'typeof prototype[' + (typeof prototype) + '] != \'object\''
+            );
+        }
+        var Type = function () {};
+        Type.prototype = prototype;
+        object = new Type();
+        object.__proto__ = prototype;
+    }
+    if (typeof properties !== 'undefined' && Object.defineProperties) {
+        Object.defineProperties(object, properties);
+    }
+    return object;
+};
+
+exports.inherits = function(ctor, superCtor) {
+  ctor.super_ = superCtor;
+  ctor.prototype = Object_create(superCtor.prototype, {
+    constructor: {
+      value: ctor,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+};
 });
 
-require.define("/node_modules/dnode-protocol/node_modules/jsonify/index.js", function (require, module, exports, __dirname, __filename) {
-    exports.parse = require('./lib/parse');
+require.define("/node_modules/dnode-protocol/node_modules/jsonify/package.json",function(require,module,exports,__dirname,__filename,process){module.exports = {"main":"index.js"}});
+
+require.define("/node_modules/dnode-protocol/node_modules/jsonify/index.js",function(require,module,exports,__dirname,__filename,process){exports.parse = require('./lib/parse');
 exports.stringify = require('./lib/stringify');
-
 });
 
-require.define("/node_modules/dnode-protocol/node_modules/jsonify/lib/parse.js", function (require, module, exports, __dirname, __filename) {
-    var at, // The index of the current character
+require.define("/node_modules/dnode-protocol/node_modules/jsonify/lib/parse.js",function(require,module,exports,__dirname,__filename,process){var at, // The index of the current character
     ch, // The current character
     escapee = {
         '"':  '"',
@@ -1404,11 +1864,9 @@ module.exports = function (source, reviver) {
         return reviver.call(holder, key, value);
     }({'': result}, '')) : result;
 };
-
 });
 
-require.define("/node_modules/dnode-protocol/node_modules/jsonify/lib/stringify.js", function (require, module, exports, __dirname, __filename) {
-    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+require.define("/node_modules/dnode-protocol/node_modules/jsonify/lib/stringify.js",function(require,module,exports,__dirname,__filename,process){var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
     escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
     gap,
     indent,
@@ -1562,13 +2020,12 @@ module.exports = function (value, replacer, space) {
     // Return the result of stringifying the value.
     return str('', {'': value});
 };
-
 });
 
-require.define("/shim.coffee", function (require, module, exports, __dirname, __filename) {
-    (function() {
-  var controlPage, descend, fnwrap, mkweb, mkwrap, pageWrap, port, proto, s, server, webpage, _phantom;
-  var __slice = Array.prototype.slice, __hasProp = Object.prototype.hasOwnProperty;
+require.define("/shim.coffee",function(require,module,exports,__dirname,__filename,process){(function() {
+  var controlPage, descend, fnwrap, mkweb, mkwrap, pageWrap, port, proto, s, server, webpage, _phantom,
+    __slice = [].slice,
+    __hasProp = {}.hasOwnProperty;
 
   mkweb = new Function("exports", "window", phantom.loadModuleSource('webpage'));
 
@@ -1595,18 +2052,28 @@ require.define("/shim.coffee", function (require, module, exports, __dirname, __
     while (keys.length > 1) {
       cur = cur[keys.shift()];
     }
-    if (op === 'set') cur[keys[0]] = val;
+    if (op === 'set') {
+      cur[keys[0]] = val;
+    }
     return cur[keys[0]];
   };
 
   mkwrap = function(src, pass, special) {
     var k, obj, _fn, _i, _len;
-    if (pass == null) pass = [];
-    if (special == null) special = {};
+    if (pass == null) {
+      pass = [];
+    }
+    if (special == null) {
+      special = {};
+    }
     obj = {
       set: function(key, val, cb) {
-        if (cb == null) cb = function() {};
-        if (typeof val === "function") val = fnwrap(val);
+        if (cb == null) {
+          cb = function() {};
+        }
+        if (typeof val === "function") {
+          val = fnwrap(val);
+        }
         return cb(descend('set', src, key, val));
       },
       get: function(key, cb) {
@@ -1615,11 +2082,13 @@ require.define("/shim.coffee", function (require, module, exports, __dirname, __
     };
     _fn = function(k) {
       return obj[k] = function() {
-        var arg, args, i, _len2;
+        var arg, args, i, _j, _len1;
         args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        for (i = 0, _len2 = args.length; i < _len2; i++) {
+        for (i = _j = 0, _len1 = args.length; _j < _len1; i = ++_j) {
           arg = args[i];
-          if (typeof arg === 'function') args[i] = fnwrap(arg);
+          if (typeof arg === 'function') {
+            args[i] = fnwrap(arg);
+          }
         }
         return src[k].apply(src, args);
       };
@@ -1638,15 +2107,23 @@ require.define("/shim.coffee", function (require, module, exports, __dirname, __
   pageWrap = function(page) {
     return mkwrap(page, ['open', 'includeJs', 'sendEvent', 'release', 'uploadFile'], {
       injectJs: function(js, cb) {
-        if (cb == null) cb = function() {};
+        if (cb == null) {
+          cb = function() {};
+        }
         return cb(page.injectJs(js));
       },
-      evaluate: function(fn, cb) {
-        if (cb == null) cb = function() {};
-        return cb(page.evaluate(fn));
+      evaluate: function() {
+        var args, cb, fn;
+        fn = arguments[0], cb = arguments[1], args = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
+        if (cb == null) {
+          cb = (function() {});
+        }
+        return cb(page.evaluate.call(page, [fn].concat(args)));
       },
       render: function(file, cb) {
-        if (cb == null) cb = function() {};
+        if (cb == null) {
+          cb = function() {};
+        }
         page.render(file);
         return cb();
       }
@@ -1655,7 +2132,9 @@ require.define("/shim.coffee", function (require, module, exports, __dirname, __
 
   _phantom = mkwrap(phantom, ['exit'], {
     injectJs: function(js, cb) {
-      if (cb == null) cb = function() {};
+      if (cb == null) {
+        cb = function() {};
+      }
       return cb(phantom.injectJs(js));
     },
     createPage: function(cb) {
@@ -1674,7 +2153,9 @@ require.define("/shim.coffee", function (require, module, exports, __dirname, __
   });
 
   controlPage.onAlert = function(msg) {
-    if (msg.slice(0, 6) !== "PCTRL ") return;
+    if (msg.slice(0, 6) !== "PCTRL ") {
+      return;
+    }
     return s.parse(msg.slice(6));
   };
 
@@ -1689,6 +2170,6 @@ require.define("/shim.coffee", function (require, module, exports, __dirname, __
   });
 
 }).call(this);
-
 });
 require("/shim.coffee");
+})();
