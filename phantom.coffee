@@ -38,11 +38,11 @@ module.exports =
 
     phantom = null
 
-    ps = startPhantomProcess appServer.address().port, args
-
-    ps.on 'exit', (code) ->
-      appServer.close()
-      phanta = (p for p in phanta when p isnt phantom)
+    appServer.on 'listening', ->
+      ps = startPhantomProcess appServer.address().port, args
+      ps.on 'exit', (code) ->
+        appServer.close()
+        phanta = (p for p in phanta when p isnt phantom)
 
     io =
       log: null,
