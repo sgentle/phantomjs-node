@@ -51,6 +51,7 @@ module.exports =
     server.listen appServer, {io}, (obj, conn) ->
       phantom = conn.remote
       wrap phantom
+      phantom.process = ps
       phanta.push phantom
       cb? phantom
 

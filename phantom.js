@@ -85,6 +85,7 @@
       }, function(obj, conn) {
         phantom = conn.remote;
         wrap(phantom);
+        phantom.process = ps;
         phanta.push(phantom);
         return typeof cb === "function" ? cb(phantom) : void 0;
       });
