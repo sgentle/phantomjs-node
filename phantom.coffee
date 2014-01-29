@@ -13,7 +13,7 @@ phanta = []
 startPhantomProcess = (binary, port, args) ->
   ps = child.spawn binary, args.concat [__dirname+'/shim.js', port]
 
-  ps.stdout.on 'data', (data) -> console.log "phantom stdout: #{data}"
+  ps.stdout.on 'data', (data) -> module.exports.stdoutHandler(data.toString('utf8'))
   
   ps.stderr.on 'data', (data) -> module.exports.stderrHandler(data.toString('utf8'))
   
@@ -98,4 +98,7 @@ module.exports =
   stderrHandler: (message) ->
     return if message.match /(No such method.*socketSentData)|(CoreText performance note)/ #Stupid, stupid QTWebKit
     console.warn "phantom stderr: #{message}"
+
+  stdoutHandler: (message) ->
+    console.log "phantom stdout: #{data}"
 
