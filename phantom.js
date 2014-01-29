@@ -145,7 +145,7 @@
       return console.warn("phantom stderr: " + message);
     },
     stdoutHandler: function(message) {
-      return console.log("phantom stdout: " + data);
+      return console.log("phantom stdout: " + message);
     }
   };
 

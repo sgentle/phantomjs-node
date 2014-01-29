@@ -100,5 +100,5 @@ module.exports =
     console.warn "phantom stderr: #{message}"
 
   stdoutHandler: (message) ->
-    console.log "phantom stdout: #{data}"
+    console.log "phantom stdout: #{message}"
 
