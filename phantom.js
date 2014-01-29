@@ -13,15 +13,17 @@
 
   phanta = [];
 
-  startPhantomProcess = function(binary, port, args) {
+  startPhantomProcess = function(binary, port, stdio, args) {
     var ps;
-    ps = child.spawn(binary, args.concat([__dirname + '/shim.js', port]));
-    ps.stdout.on('data', function(data) {
-      return module.exports.stdoutHandler(data.toString('utf8'));
-    });
-    ps.stderr.on('data', function(data) {
-      return module.exports.stderrHandler(data.toString('utf8'));
-    });
+    ps = child.spawn(binary, args.concat([__dirname + '/shim.js', port]), stdio);
+    if (stdio !== "ignore") {
+      ps.stdout.on('data', function(data) {
+        return module.exports.stdoutHandler(data.toString('utf8'));
+      });
+      ps.stderr.on('data', function(data) {
+        return module.exports.stderrHandler(data.toString('utf8'));
+      });
+    }
     ps.on('error', function(err) {
       if ((err != null ? err.code : void 0) === 'ENOENT') {
         return console.error("phantomjs-node: You don't have 'phantomjs' installed");
@@ -72,7 +74,7 @@
 
   module.exports = {
     create: function() {
-      var arg, args, cb, httpServer, options, phantom, sock, _i, _len, _ref, _ref1;
+      var arg, args, cb, httpServer, options, phantom, sock, _i, _len, _ref, _ref1, _ref2;
       args = [];
       options = {};
       for (_i = 0, _len = arguments.length; _i < _len; _i++) {
@@ -94,12 +96,15 @@
       if ((_ref1 = options.port) == null) {
         options.port = 12300;
       }
+      if ((_ref2 = options.stdio) == null) {
+        options.stdio = void 0;
+      }
       phantom = null;
       httpServer = http.createServer();
       httpServer.listen(options.port);
       httpServer.on('listening', function() {
         var ps;
-        ps = startPhantomProcess(options.binary, options.port, args);
+        ps = startPhantomProcess(options.binary, options.port, options.stdio, args);
         return ps.on('exit', function(code, signal) {
           var p;
           httpServer.close();
