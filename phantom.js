@@ -17,7 +17,7 @@
     var ps;
     ps = child.spawn(binary, args.concat([__dirname + '/shim.js', port]));
     ps.stdout.on('data', function(data) {
-      return console.log("phantom stdout: " + data);
+      return module.exports.stdoutHandler(data.toString('utf8'));
     });
     ps.stderr.on('data', function(data) {
       return module.exports.stderrHandler(data.toString('utf8'));
@@ -143,6 +143,9 @@
         return;
       }
       return console.warn("phantom stderr: " + message);
+    },
+    stdoutHandler: function(message) {
+      return console.log("phantom stdout: " + data);
     }
   };
 
