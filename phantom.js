@@ -5,7 +5,7 @@
   	dnode = require('dnode'),
   	http = require('http'),
   	shoe = require('shoe'),
-  	spawn = require('child_process');
+  	spawn = require('child_process').spawn;
 
   phanta = [];
 
