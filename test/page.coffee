@@ -43,6 +43,22 @@ describe "Pages",
         ph.createPage (page) =>
           @callback null, page, ph
 
+    "has a pages object":
+      topic: t (page) ->
+        page.pages (pages) =>
+          @callback null, pages
+
+      "that is empty to begin with": (pages) ->
+        assert.equal pages.length, 0
+
+    "can own pages":
+      topic: t (page) ->
+        page.ownsPages (status) =>
+          @callback null, status
+
+      "and owns itself to start": (status) ->
+        assert.equal status, true
+
     "can open a URL on localhost":
       topic: t (page) ->
         page.open "http://127.0.0.1:#{appServer.address().port}/", (status) =>
