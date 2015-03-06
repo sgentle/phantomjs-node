@@ -102,6 +102,14 @@ pageWrap = (page) -> mkwrap page,
         cb = ->
 
     page.render file, opts; cb()
+  pages: (cb) ->
+    cb page.pages
+  pagesWindowName: (cb) ->
+    cb page.pagesWindowName
+  getPage: (windowName, cb) ->
+    cb page.getPage windowName
+  ownsPages: (cb) ->
+    cb page.ownsPages
   getContent: (cb=->) -> cb page.content
   getCookies: (cb=->) -> cb page.cookies
   renderBase64: (type, cb=->) -> cb page.renderBase64 type

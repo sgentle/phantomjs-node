@@ -5554,6 +5554,18 @@ require.define("/shim.coffee", function (require, module, exports, __dirname, __
         page.render(file, opts);
         return cb();
       },
+      pages: function(cb) {
+        return cb(page.pages);
+      },
+      pagesWindowName: function(cb) {
+        return cb(page.pagesWindowName);
+      },
+      getPage: function(windowName, cb) {
+        return cb(page.getPage(windowName));
+      },
+      ownsPages: function(cb) {
+        return cb(page.ownsPages);
+      },
       getContent: function(cb) {
         if (cb == null) cb = function() {};
         return cb(page.content);
