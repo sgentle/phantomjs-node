@@ -9321,7 +9321,7 @@ var hasOwnProperty = Object.hasOwnProperty || function (obj, key) {
 };
 
 },{}],41:[function(require,module,exports){
-var _phantom, _transform, d, descend, dnode, fnwrap, hostname, mkwrap, pageWrap, port, shoe, stream, system, transform, webpage,
+var _phantom, _transform, d, descend, dnode, fnwrap, hostname, mkwrap, pageWrap, port, resourceHandler, shoe, stream, system, transform, webpage,
   slice = [].slice,
   hasProp = {}.hasOwnProperty;
 
@@ -9427,6 +9427,15 @@ mkwrap = function(src, pass, special) {
   return obj;
 };
 
+resourceHandler = function() {
+  var argumentsWithExtraArgs, fn;
+  argumentsWithExtraArgs = [].slice.apply(arguments).concat(args);
+  fn = fn.replace(/function.*\(/, 'function x(');
+  eval(fn);
+  x.apply(this, argumentsWithExtraArgs);
+  return cb.apply(this, argumentsWithExtraArgs);
+};
+
 pageWrap = function(page) {
   return mkwrap(page, ['open', 'close', 'includeJs', 'sendEvent', 'release', 'uploadFile', 'goBack', 'goForward', 'reload', 'switchToFrame', 'switchToMainFrame', 'switchToParentFrame', 'switchToFocusedFrame'], {
     onConsoleMessage: function(fn, cb) {
@@ -9447,20 +9456,23 @@ pageWrap = function(page) {
       };
       return cb();
     },
+    onResourceReceived: function() {
+      var args, cb, fn;
+      fn = arguments[0], cb = arguments[1], args = 3 <= arguments.length ? slice.call(arguments, 2) : [];
+      if (cb == null) {
+        cb = (function() {});
+      }
+      return page.onResourceReceived = function() {
+        return resourceHandler;
+      };
+    },
     onResourceRequested: function() {
       var args, cb, fn;
       fn = arguments[0], cb = arguments[1], args = 3 <= arguments.length ? slice.call(arguments, 2) : [];
       if (cb == null) {
         cb = (function() {});
       }
-      return page.onResourceRequested = function() {
-        var argumentsWithExtraArgs;
-        argumentsWithExtraArgs = [].slice.apply(arguments).concat(args);
-        fn = fn.replace(/function.*\(/, 'function x(');
-        eval(fn);
-        x.apply(this, argumentsWithExtraArgs);
-        return cb.apply(this, argumentsWithExtraArgs);
-      };
+      return page.onResourceRequested = resourceHandler;
     },
     injectJs: function(js, cb) {
       if (cb == null) {

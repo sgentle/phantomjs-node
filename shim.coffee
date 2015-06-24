@@ -68,6 +68,18 @@ mkwrap = (src, pass=[], special={}) ->
     obj[k] = special[k]
   obj
 
+resourceHandler = ->
+  # prepare a arguments with the extra args
+  argumentsWithExtraArgs = [].slice.apply(arguments).concat(args)
+  # give a name to the anonymouse function so that we can call it
+  fn = fn.replace /function.*\(/, 'function x('
+  # the only way we can access the request object is by passing a function to this point as a string and expanding it
+  eval(fn) # :(
+  # this function has access to request.abort()
+  x.apply(this, argumentsWithExtraArgs)
+  # this function does not have access to request.abort()
+  cb.apply(this, argumentsWithExtraArgs)
+
 pageWrap = (page) -> mkwrap page,
   ['open','close','includeJs','sendEvent','release','uploadFile','goBack','goForward','reload', 'switchToFrame', 'switchToMainFrame', 'switchToParentFrame', 'switchToFocusedFrame']
   # this is here to let the user pass in a function that has access to request.abort() and other functions on the request object.
@@ -79,18 +91,10 @@ pageWrap = (page) -> mkwrap page,
     page.onError = ->
       fn.apply(this, arguments)
     cb()
+  onResourceReceived: (fn, cb=(->), args...) ->
+    page.onResourceReceived = ->resourceHandler
   onResourceRequested: (fn, cb=(->), args...) ->
-    page.onResourceRequested = ->
-      # prepare a arguments with the extra args
-      argumentsWithExtraArgs = [].slice.apply(arguments).concat(args)
-      # give a name to the anonymouse function so that we can call it
-      fn = fn.replace /function.*\(/, 'function x('
-      # the only way we can access the request object is by passing a function to this point as a string and expanding it
-      eval(fn) # :(
-      # this function has access to request.abort()
-      x.apply(this, argumentsWithExtraArgs)
-      # this function does not have access to request.abort()
-      cb.apply(this, argumentsWithExtraArgs)
+    page.onResourceRequested = resourceHandler
   injectJs: (js, cb=->) -> cb page.injectJs js
   evaluate: (fn, cb=(->), args...) -> cb page.evaluate.apply(page, [fn].concat(args))
   render: (file, opts={}, cb) ->
