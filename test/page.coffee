@@ -143,6 +143,15 @@ describe "Pages",
             assert.equal msg, "Hello, world!"
         ###
 
+        "can register an onAlert handler":
+          topic: t (page) ->
+            page.onAlert (msg) =>
+              @callback null, msg
+            page.evaluate (-> alert "Hello, world!")
+
+          "which works correctly": (msg) ->
+            assert.equal msg, "Hello, world!"
+
         "can register an onConsoleMessage handler":
           topic: t (page) ->
             page.onConsoleMessage (msg) =>

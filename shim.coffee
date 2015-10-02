@@ -74,6 +74,10 @@ pageWrap = (page) -> mkwrap page,
   onPageCreated:(cb=(->))->
     page.onPageCreated = (newpage) ->
       cb pageWrap newpage
+  onAlert: (fn, cb=(->)) ->
+    page.onAlert = ->
+      fn.apply(this, arguments)
+    cb()
   onConsoleMessage: (fn, cb=(->)) ->
     page.onConsoleMessage = ->
       fn.apply(this, arguments)
