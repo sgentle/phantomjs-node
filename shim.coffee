@@ -1,5 +1,6 @@
 # Require gets overwritten by browserify, so we have to reimplement it from scratch - boo :(
 webpage = core_require('webpage');
+cookiejar = core_require('cookiejar');
 
 shoe     = require('shoe');
 dnode    = require('dnode');
@@ -95,6 +96,7 @@ pageWrap = (page) -> mkwrap page,
       # this function does not have access to request.abort()
       cb.apply(this, argumentsWithExtraArgs)
   injectJs: (js, cb=->) -> cb page.injectJs js
+  clearMemoryCache: (cb=->) -> cb page.clearMemoryCache()
   evaluate: (fn, cb=(->), args...) -> cb page.evaluate.apply(page, [fn].concat(args))
   render: (file, opts={}, cb) ->
     unless cb?
@@ -107,6 +109,13 @@ pageWrap = (page) -> mkwrap page,
     page.render file, opts; cb()
   getContent: (cb=->) -> cb page.content
   getCookies: (cb=->) -> cb page.cookies
+  newCookieJar: (cb=->) -> 
+    page.cookieJar = cookiejar.create()
+    cb()
+  closeCookieJar: (cb=->) -> 
+    if page.cookieJar
+      page.cookieJar.close()
+    cb()
   renderBase64: (type, cb=->) -> cb page.renderBase64 type
   setHeaders: (headers, cb=->) -> page.customHeaders = headers; cb()
   setContent: (html, url, cb=->) ->
