@@ -128,6 +128,8 @@ page.evaluate(function() {
 });
 ```
 
+Other phantomjs functions like render, close, injectJs, includeJs, openUrl, stop, renderBase64,addCookie, deleteCookie, clearCookies etc are also used in the same manner above.
+
 
 ## Tests
 
