@@ -37,6 +37,8 @@ export default class Phantom {
         this.process = spawn(phantomjs.path, args.concat([pathToShim]));
         this.commands = new Map();
 
+        this.onMessageCallbacks = [];
+
         this.process.stdin.setEncoding('utf-8');
 
         this.process.stdout.pipe(new Linerstream()).on('data', data => {
@@ -53,6 +55,12 @@ export default class Phantom {
                     deferred.reject(new Error(command.error));
                 }
                 this.commands.delete(command.id);
+            } else if(message.indexOf(this.getCallbackMessagePrefix()) == 0) {
+                let callbackMessage = message.substr(this.getCallbackMessagePrefix().length);
+                this.onMessageCallbacks.forEach(function(cb) {
+                    cb(callbackMessage);
+                });
+
             } else {
                 logger.info(message);
             }
@@ -67,6 +75,14 @@ export default class Phantom {
         });
 
         this.heartBeatId = setInterval(this._heartBeat.bind(this), 100);
+    }
+
+    /**
+     * Registers a callback to receive {String} messages from the Phantom context.
+     * @param {Function}
+     */
+    onMessage(cb) {
+        this.onMessageCallbacks.push(cb);
     }
 
     /**
@@ -159,5 +175,9 @@ export default class Phantom {
         if (this.commands.size === 0) {
             this.execute('phantom', 'noop');
         }
+    }
+
+    getCallbackMessagePrefix() {
+        return 'ZuKpdotI19pLsnB8eOYxqnaQJc40LwqaIAwGk0vHEy0';
     }
 }
