@@ -174,7 +174,7 @@ Switch to the frame specified by a frame name or a frame position:
 
 ```js
 page.switchToFrame(framePositionOrName).then(function() {
-    // do work
+    // now the context of `page` will be the iframe if frame name or position exists
 });
 ```
 
@@ -184,7 +184,7 @@ Switch to the main frame of the page:
 
 ```js
 page.switchToMainFrame().then(function() {
-    // do work
+    // now the context of `page` will the main frame
 });
 ```
 

@@ -306,8 +306,10 @@ describe('Page', () => {
     });
 
     /**
-     * Check that an iframe with id 'testframe' has been loaded.
-     * Returns after iframe is loaded or after 10 intervals of 100ms.
+     * For testing iframes we need to be sure the iframe is loaded before validating.
+     * This function checks that an iframe with id 'testframe' has been loaded.
+     * There are 2 exit conditions, when the frame is loaded or 
+     * a timeout of 10 intervals of 100ms is reached.
      * This function is required for stability of the next two tests,
      * #switchToFrame(framePosition) and #switchToMainFrame().
      *
@@ -317,12 +319,10 @@ describe('Page', () => {
 
         /**
          * Need to define the function since we will be re-using it.
-         *
          */
         function checkIframeLoaded() {
             // Get a handle to the iframe element
             var iframe = document.getElementById('testframe');
-
             var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
             // Check if loading is complete
@@ -331,7 +331,6 @@ describe('Page', () => {
             } 
 
             checkCount += 1;
-
             // if we are here, it is not loaded. Set things up so we check the status again in 100 milliseconds
             window.setTimeout(checkIframeLoaded, 100);
         }
@@ -344,9 +343,7 @@ describe('Page', () => {
         let html = '<html><head><title>Iframe Test</title></head><body><iframe id="testframe" src="http://localhost:8888/test.html"></iframe></body></html>';
 
         yield page.setContent(html, 'http://localhost:8888/');
-
         yield page.evaluate(checkframe);
-
         yield page.switchToFrame(0);
 
         let responseIframe = yield page.evaluate(function () {
@@ -363,9 +360,7 @@ describe('Page', () => {
 
         yield page.setContent(html, 'http://localhost:8888/');
         yield page.evaluate(checkframe);
-
         yield page.switchToFrame(0);
-
         yield page.switchToMainFrame();
 
         let responseMainFrame = yield page.evaluate(function () {
