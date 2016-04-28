@@ -168,6 +168,26 @@ page.evaluateJavaScript('function() { return document.getElementById(\'foo\').in
 });
 ```
 
+### `page#switchToFrame`
+
+Switch to the frame specified by a frame name or a frame position:
+
+```js
+page.switchToFrame(framePositionOrName).then(function() {
+    // do work
+});
+```
+
+### `page#switchToMainFrame`
+
+Switch to the main frame of the page:
+
+```js
+page.switchToMainFrame().then(function() {
+    // do work
+});
+```
+
 
 ## Tests
 

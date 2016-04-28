@@ -305,5 +305,76 @@ describe('Page', () => {
         expect(response).toBe(true);
     });
 
+    /**
+     * Check that an iframe with id 'testframe' has been loaded.
+     * Returns after iframe is loaded or after 10 intervals of 100ms.
+     * This function is required for stability of the next two tests,
+     * #switchToFrame(framePosition) and #switchToMainFrame().
+     *
+     */
+    function checkframe() {
+        var checkCount = 0;
+
+        /**
+         * Need to define the function since we will be re-using it.
+         *
+         */
+        function checkIframeLoaded() {
+            // Get a handle to the iframe element
+            var iframe = document.getElementById('testframe');
+
+            var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+            // Check if loading is complete
+            if (checkCount > 10 || iframeDoc.readyState  === 'complete') {
+                return;
+            } 
+
+            checkCount += 1;
+
+            // if we are here, it is not loaded. Set things up so we check the status again in 100 milliseconds
+            window.setTimeout(checkIframeLoaded, 100);
+        }
+
+        return checkIframeLoaded();
+    }
+
+    it('#switchToFrame(framePosition) will switch to frame of framePosition', function*() {
+        let page = yield phantom.createPage();
+        let html = '<html><head><title>Iframe Test</title></head><body><iframe id="testframe" src="http://localhost:8888/test.html"></iframe></body></html>';
+
+        yield page.setContent(html, 'http://localhost:8888/');
+
+        yield page.evaluate(checkframe);
+
+        yield page.switchToFrame(0);
+
+        let responseIframe = yield page.evaluate(function () {
+            return document.body.innerHTML;
+        });
+
+        // confirm the body content of the iframe
+        expect(responseIframe).toEqual('Test');
+    });
+
+    it('#switchToMainFrame() will switch back to the main frame', function*() {
+        let page = yield phantom.createPage();
+        let html = '<html><head><title>Iframe Test</title></head><body><iframe id="testframe" src="http://localhost:8888/test.html"></iframe></body></html>';
+
+        yield page.setContent(html, 'http://localhost:8888/');
+        yield page.evaluate(checkframe);
+
+        yield page.switchToFrame(0);
+
+        yield page.switchToMainFrame();
+
+        let responseMainFrame = yield page.evaluate(function () {
+            return document.body.innerHTML;
+        });
+        
+        // confirm the body content of the main frame
+        expect(responseMainFrame).toEqual('<iframe id="testframe" src="http://localhost:8888/test.html"></iframe>');
+    });
+
 });
 
