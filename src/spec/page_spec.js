@@ -464,10 +464,9 @@ describe('Page', () => {
      * For testing iframes we need to be sure the iframe is loaded before validating.
      * This function checks that an iframe with id 'testframe' has been loaded.
      * There are 2 exit conditions, when the frame is loaded or 
-     * a timeout of 10 intervals of 100ms is reached.
+     * a timeout of 20 intervals of 100ms is reached.
      * This function is required for stability of the next two tests,
      * #switchToFrame(framePosition) and #switchToMainFrame().
-     *
      */
     function checkframe() {
         var checkCount = 0;
@@ -481,7 +480,7 @@ describe('Page', () => {
             var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
             // Check if loading is complete
-            if (checkCount > 10 || iframeDoc.readyState  === 'complete') {
+            if (checkCount > 20 || iframeDoc.readyState  === 'complete') {
                 return;
             } 
 
