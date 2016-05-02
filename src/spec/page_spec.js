@@ -360,6 +360,7 @@ describe('Page', () => {
 
         yield page.setContent(html, 'http://localhost:8888/');
         yield page.evaluate(checkframe);
+        // need to switch to child frame here to test switchToMainFrame() works
         yield page.switchToFrame(0);
         yield page.switchToMainFrame();
 
