@@ -24,7 +24,8 @@ const eventsForEntities = {
         'onResourceTimeout',
         'onAlert',
         'onConsoleMessage',
-        'onClosing'
+        'onClosing',
+        'onCallback'
     ]
 };
 
