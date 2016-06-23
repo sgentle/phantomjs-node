@@ -43,6 +43,13 @@ export default class Page {
     off(event) {
         return this.phantom.off(event, this.target);
     }
+    
+    /**
+     * Invokes an asynchronous method
+     */
+    invokeAsyncMethod() {
+        return this.phantom.execute(this.target, 'invokeAsyncMethod', [].slice.call(arguments));
+    }
 }
 
 

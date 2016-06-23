@@ -97,7 +97,15 @@ const commands = {
         completeCommand(command);
     },
 
-    noop: command => completeCommand(command)
+    noop: command => completeCommand(command),
+    
+    invokeAsyncMethod: function (command) {
+        let target = objectSpace[command.target];
+        target[command.params[0]].apply(target, command.params.slice(1).concat(result => {
+            command.response = result;
+            completeCommand(command);
+        }));
+    }
 };
 
 /**

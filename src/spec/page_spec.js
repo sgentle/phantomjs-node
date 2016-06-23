@@ -508,6 +508,22 @@ describe('Page', () => {
         
         expect(reloaded).toBe(true);
     });
+    
+    it('#invokeAsyncMethod(\'includeJs\', \'http://localhost:8888/script.js\') executes correctly', function*() {
+        let page = yield phantom.createPage();
+        yield page.open('http://localhost:8888/test');
+        yield page.invokeAsyncMethod('includeJs', 'http://localhost:8888/script.js');
+        let response = yield page.evaluate(function () {
+            return fooBar; // eslint-disable-line no-undef
+        });
+        expect(response).toEqual(2);
+    });
+    
+    it('#invokeAsyncMethod(\'open\', \'http://localhost:8888/test\') executes correctly', function*() {
+        let page = yield phantom.createPage();
+        let status = yield page.invokeAsyncMethod('open', 'http://localhost:8888/test');
+        expect(status).toEqual('success');
+    });
 
 });
 
