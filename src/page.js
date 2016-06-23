@@ -57,6 +57,13 @@ export default class Page {
     invokeMethod() {
         return this.phantom.execute(this.target, 'invokeMethod', [].slice.call(arguments));
     }
+    
+    /**
+     * Defines a method
+     */
+    defineMethod(name, implementation) {
+        return this.phantom.execute(this.target, 'defineMethod', [name, implementation]);
+    }
 }
 
 

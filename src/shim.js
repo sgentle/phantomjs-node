@@ -112,6 +112,12 @@ const commands = {
         let method = target[command.params[0]];
         command.response = method.apply(target, command.params.slice(1));
         completeCommand(command);
+    },
+    
+    defineMethod: function (command) {
+        let target = objectSpace[command.target];
+        target[command.params[0]] = command.params[1];
+        completeCommand(command);
     }
 };
 

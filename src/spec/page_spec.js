@@ -538,6 +538,15 @@ describe('Page', () => {
         let content = yield page.invokeMethod('renderBase64', 'PNG');
         expect(content).not.toBeNull();
     });
+    
+    it('#defineMethod(name, implementation) defines a method', function*() {
+        let page = yield phantom.createPage();
+        yield page.defineMethod('getZoomFactor', function() {
+            return this.zoomFactor; // eslint-disable-line no-invalid-this
+        });
+        let zoomFactor = yield page.invokeMethod('getZoomFactor');
+        expect(zoomFactor).toEqual(1);
+    });
 
 });
 
