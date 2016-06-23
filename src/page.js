@@ -112,6 +112,6 @@ asyncMethods.forEach(method => {
 
 methods.forEach(method => {
     Page.prototype[method] = function () {
-        return this.phantom.execute(this.target, method, [].slice.call(arguments));
+        return this.invokeMethod.apply(this, [method].concat([].slice.call(arguments)));
     }
 });
