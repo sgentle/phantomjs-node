@@ -11,12 +11,6 @@ const objectSpace = {
 const events = {};
 
 /**
- * All methods that have a callback in their signature
- * @type {string[]}
- */
-const haveCallbacks = ['open', 'includeJs'];
-
-/**
  * All commands that have a custom implementation
  */
 const commands = {
@@ -191,18 +185,8 @@ function executeCommand(command) {
     } else if (objectSpace[command.target]) {
         const target = objectSpace[command.target];
         const method = target[command.name];
-
-        if (haveCallbacks.indexOf(command.name) === -1) {
-            command.response = method.apply(target, command.params);
-            completeCommand(command);
-        } else {
-            let params = command.params.slice(); // copy params
-            params.push(status => {
-                command.response = status;
-                completeCommand(command);
-            });
-            method.apply(target, params);
-        }
+        command.response = method.apply(target, command.params);
+        completeCommand(command);
     } else {
         throw new Error(`Cannot find ${command.name} method to execute on ${command.target} object.`);
     }
