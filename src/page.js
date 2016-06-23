@@ -80,12 +80,35 @@ export default class Page {
     }
 }
 
+const asyncMethods = [
+    'includeJs',
+    'open'
+];
 
 const methods = [
-    'open', 'render', 'close', 'injectJs', 'includeJs', 'openUrl', 'stop', 'renderBase64',
-    'evaluate', 'evaluateJavaScript', 'addCookie', 'deleteCookie', 'clearCookies', 'setContent', 'sendEvent',
-    'switchToMainFrame', 'switchToFrame', 'reload'
+    'addCookie',
+    'clearCookies',
+    'close',
+    'deleteCookie',
+    'evaluate',
+    'evaluateJavaScript',
+    'injectJs', 
+    'openUrl',
+    'reload',
+    'render',
+    'renderBase64',
+    'sendEvent',
+    'setContent',
+    'stop',
+    'switchToFrame',
+    'switchToMainFrame'
 ];
+
+asyncMethods.forEach(method => {
+    Page.prototype[method] = function () {
+        return this.invokeAsyncMethod.apply(this, [method].concat([].slice.call(arguments)));
+    }; 
+});
 
 methods.forEach(method => {
     Page.prototype[method] = function () {
