@@ -64,12 +64,26 @@ export default class Page {
     defineMethod(name, implementation) {
         return this.phantom.execute(this.target, 'defineMethod', [name, implementation]);
     }
+    
+    /**
+     * Gets or sets a property
+     */
+    property() {
+        return this.phantom.execute(this.target, 'property', [].slice.call(arguments));
+    }
+    
+    /**
+     * Gets or sets a setting
+     */
+    setting() {
+        return this.phantom.execute(this.target, 'setting', [].slice.call(arguments));
+    }
 }
 
 
 const methods = [
-    'open', 'render', 'close', 'property', 'injectJs', 'includeJs', 'openUrl', 'stop', 'renderBase64',
-    'evaluate', 'evaluateJavaScript', 'setting', 'addCookie', 'deleteCookie', 'clearCookies', 'setContent', 'sendEvent',
+    'open', 'render', 'close', 'injectJs', 'includeJs', 'openUrl', 'stop', 'renderBase64',
+    'evaluate', 'evaluateJavaScript', 'addCookie', 'deleteCookie', 'clearCookies', 'setContent', 'sendEvent',
     'switchToMainFrame', 'switchToFrame', 'reload'
 ];
 
