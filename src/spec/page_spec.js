@@ -524,6 +524,20 @@ describe('Page', () => {
         let status = yield page.invokeAsyncMethod('open', 'http://localhost:8888/test');
         expect(status).toEqual('success');
     });
+    
+    it('#invokeMethod(\'evaluate\', \'function () { return document.title }\') executes correctly', function*() {
+        let page = yield phantom.createPage();
+        yield page.open('http://localhost:8888/test.html');
+        let response = yield page.invokeMethod('evaluate', 'function () { return document.title }');
+        expect(response).toEqual('Page Title'); 
+    });
+    
+    it('#invokeMethod(\'renderBase64\') executes correctly', function*() {
+        let page = yield phantom.createPage();
+        yield page.open('http://localhost:8888/test');
+        let content = yield page.invokeMethod('renderBase64', 'PNG');
+        expect(content).not.toBeNull();
+    });
 
 });
 

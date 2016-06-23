@@ -105,6 +105,13 @@ const commands = {
             command.response = result;
             completeCommand(command);
         }));
+    },
+    
+    invokeMethod: function (command) {
+        let target = objectSpace[command.target];
+        let method = target[command.params[0]];
+        command.response = method.apply(target, command.params.slice(1));
+        completeCommand(command);
     }
 };
 

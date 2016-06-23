@@ -50,6 +50,13 @@ export default class Page {
     invokeAsyncMethod() {
         return this.phantom.execute(this.target, 'invokeAsyncMethod', [].slice.call(arguments));
     }
+    
+    /**
+     * Invokes a method
+     */
+    invokeMethod() {
+        return this.phantom.execute(this.target, 'invokeMethod', [].slice.call(arguments));
+    }
 }
 
 
