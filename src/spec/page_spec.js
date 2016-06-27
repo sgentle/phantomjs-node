@@ -539,7 +539,7 @@ describe('Page', () => {
         expect(content).not.toBeNull();
     });
     
-    it('#defineMethod(name, implementation) defines a method', function*() {
+    it('#defineMethod(name, definition) defines a method', function*() {
         let page = yield phantom.createPage();
         yield page.defineMethod('getZoomFactor', function() {
             return this.zoomFactor; // eslint-disable-line no-invalid-this
