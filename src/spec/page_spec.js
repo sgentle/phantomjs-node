@@ -248,9 +248,9 @@ describe('Page', () => {
 
     it('#reject(...) works when there is an error', function*() {
         try {
-            yield phantom.execute('phantom', 'doesNotExist');
+            yield phantom.execute('page', 'nonexistentCommand');
         } catch (e) {
-            expect(e.message).toEqual("undefined is not an object (evaluating 'method.apply')");
+            expect(e.message).toEqual("'nonexistentCommand' isn't a command.");
         }
     });
 
