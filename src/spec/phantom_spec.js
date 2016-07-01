@@ -5,6 +5,7 @@ import Phantom from "../phantom";
 import path from "path";
 import Page from "../page";
 
+
 describe('Phantom', () => {
     let instance;
     beforeAll(() => instance = new Phantom());
@@ -50,5 +51,19 @@ describe('Phantom', () => {
 
     it('#create(true) to throw an exception', () => {
         expect(() => new Phantom(true)).toThrow();
+    });
+
+    it('catches errors when stdin closes unexpectedly', (done) => {
+        instance.process.stdin.end();
+        instance.createPage().catch(() => {
+            done();
+        });
+    });
+
+    it('catches errors when stdout closes unexpectedly', (done) => {
+        instance.process.stdout.end();
+        instance.createPage().catch(() => {
+            done();
+        });
     });
 });

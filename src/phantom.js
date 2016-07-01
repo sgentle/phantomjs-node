@@ -76,13 +76,18 @@ export default class Phantom {
         this.process.on('error', error => {
             logger.error(`Could not spawn [${phantomjs.path}] executable. Please make sure phantomjs is installed correctly.`);
             logger.error(error);
-            this.kill('Process got an error');
+            this.kill(`Process got an error: ${error}`);
             process.exit(1);
         });
 
         this.process.stdin.on('error', (e) => {
             logger.debug(`Child process received error ${e}, sending kill signal`);
-            this.kill('Error reading from stdin');
+            this.kill(`Error reading from stdin: ${e}`);
+        });
+
+        this.process.stdout.on('error', (e) => {
+            logger.debug(`Child process received error ${e}, sending kill signal`);
+            this.kill(`Error reading from stdout: ${e}`);
         });
 
         this.heartBeatId = setInterval(this._heartBeat.bind(this), 100);
@@ -224,16 +229,15 @@ export default class Phantom {
      */
     exit() {
         clearInterval(this.heartBeatId);
-        return this.execute('phantom', 'invokeMethod', ['exit']);
+        this.execute('phantom', 'invokeMethod', ['exit']);
     }
 
     /**
      * Clean up and force kill this process
      */
     kill(errmsg = 'Phantom process was killed') {
-        this.rejectCommands(errmsg);
+        this._rejectAllCommands(errmsg);
         this.process.kill('SIGKILL');
-        return Promise.reject(errmsg);
     }
 
     _heartBeat() {
@@ -245,7 +249,7 @@ export default class Phantom {
     /**
      * rejects all commands in this.commands
      */
-    rejectCommands(errmsg = 'Phantom exited prematurely') {
+    _rejectAllCommands(errmsg = 'Phantom exited prematurely') {
         // prevent heartbeat from preventing this from terminating
         clearInterval(this.heartBeatId); 
         for (const command of this.commands.values()) {
