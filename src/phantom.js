@@ -34,27 +34,28 @@ export default class Phantom {
         }
 
         let pathToShim = path.normalize(__dirname + '/shim.js');
-        logger.debug(`Starting ${phantomjs.path} ${args.concat([pathToShim]).join(' ')}`);
-        this.process = spawn(phantomjs.path, args.concat([pathToShim]));
+	    logger.debug(`Starting ${phantomjs.path} ${args.concat([pathToShim]).join(' ')}`);
+
         this.commands = new Map();
         this.events = new Map();
 
+			this.process = spawn(phantomjs.path, args.concat([pathToShim]));
         this.process.stdin.setEncoding('utf-8');
 
         this.process.stdout.pipe(new Linerstream()).on('data', data => {
             const message = data.toString('utf8');
-            if (message[0] === '>') {
-                let json = message.substr(1);
-                logger.debug('Parsing: %s', json);
-                const command = JSON.parse(json);
+					if (message[0] === '>') {
+						let json = message.substr(1);
+						logger.debug('Parsing: %s', json);
+						const command = JSON.parse(json);
 
-                let deferred = this.commands.get(command.id).deferred;
-                if (command.error === undefined) {
-                    deferred.resolve(command.response);
-                } else {
-                    deferred.reject(new Error(command.error));
-                }
-                this.commands.delete(command.id);
+						let deferred = this.commands.get(command.id).deferred;
+						if (command.error === undefined) {
+							deferred.resolve(command.response);
+						} else {
+							deferred.reject(new Error(command.error));
+						}
+							this.commands.delete(command.id);
             } else if (message.indexOf('<event>') === 0) {
                 let json = message.substr(7);
                 logger.debug('Parsing: %s', json);
@@ -74,9 +75,26 @@ export default class Phantom {
         this.process.on('exit', code => logger.debug(`Child exited with code {${code}}`));
         this.process.on('error', error => {
             logger.error(`Could not spawn [${phantomjs.path}] executable. Please make sure phantomjs is installed correctly.`);
-            logger.error(error);
-            process.exit(1);
+	        logger.error(error);
+	        console.log(error);
+            this.process.exit(1);
         });
+
+	    this.process.stdin.on('error', (e) => {
+		    logger.debug(`Child process received error ${e}, sending kill signal`);
+		    console.log(`Child process received error ${e}, sending kill signal`);
+		    this.process.kill('SIGKILL');
+		    this.rejectCommands();
+				this.return = () => {
+			    console.log('rejected');
+			    return Promise.reject(e);
+		    };
+	    });
+
+	    // wrapper for returning values. Returns a rejected promise if the child process errors
+	    this.return = (d) => {
+		    return d;
+	    }
 
         this.heartBeatId = setInterval(this._heartBeat.bind(this), 100);
     }
@@ -147,18 +165,16 @@ export default class Phantom {
                 r = typeof val === 'function' ? val.toString() : val
             }
             return r;
-        });
-        logger.debug('Sending: %s', json);
+				});
+			logger.debug('Sending: %s', json);
 
-        this.process.stdin.write(
-            json + os.EOL, 'utf8'
-        );
 
-        return promise;
+	    this.process.stdin.write(json + os.EOL, 'utf8');
+	    return this.return(promise);
     }
 
-    /**
-     * Executes a command
+		/**
+		 * Executes a command
      *
      * @param target target object to execute against
      * @param name the name of the method execute
@@ -218,13 +234,24 @@ export default class Phantom {
      * Cleans up and end the phantom process
      */
     exit() {
-        clearInterval(this.heartBeatId);
-        this.execute('phantom', 'invokeMethod', ['exit']);
-    }
+	    clearInterval(this.heartBeatId);
+	    this.rejectCommands();
+			return this.execute('phantom', 'invokeMethod', ['exit']);
+		}
 
     _heartBeat() {
-        if (this.commands.size === 0) {
-            this.execute('phantom', 'noop');
-        }
+	    if (this.commands.size === 0) {
+					this.execute('phantom', 'noop');
+			}
     }
+
+	/**
+	 * rejects all commands in this.commands
+	 */
+	rejectCommands() {
+		clearInterval(this.heartBeatId);
+		for (const command of this.commands.values()) {
+			command.deferred.reject(new Error('Phantom exited prematurely'));
+		}
+	}
 }
