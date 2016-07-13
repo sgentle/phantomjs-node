@@ -34,11 +34,11 @@ export default class Phantom {
         if (!Array.isArray(args)) {
             throw new Error('Unexpected type of parameters. Expecting args to be array.');
         }
-        if (!config || typeof(config) !== 'object') {
+        if (!config || typeof config !== 'object') {
             throw new Error('Unexpected type of parameters. Expecting config to be object.');
         }
 
-        let phantomPath = typeof(config.phantomPath) === 'string' ? config.phantomPath : phantomjs.path;
+        let phantomPath = typeof config.phantomPath === 'string' ? config.phantomPath : phantomjs.path;
 
         let pathToShim = path.normalize(__dirname + '/shim.js');
         logger.debug(`Starting ${phantomPath} ${args.concat([pathToShim]).join(' ')}`);
