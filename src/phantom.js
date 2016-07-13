@@ -27,20 +27,18 @@ export default class Phantom {
      * Creates a new instance of Phantom
      *
      * @param args command args to pass to phantom process
+     * @param [config] configuration object
+     * @param [config.phantomPath] path to phantomjs executable
      */
-    constructor(args = []) {
+    constructor(args = [], config = {}) {
         if (!Array.isArray(args)) {
             throw new Error('Unexpected type of parameters. Expecting args to be array.');
         }
-
-        let phantomPath = phantomjs.path;
-        for (let i = 0; i < args.length; i += 1) {
-            if(args[i].indexOf('phantomPath=') === 0) {
-                phantomPath = args[i].slice(12);
-                args.splice(i, 1);
-                break;
-            }
+        if (!config || typeof(config) !== 'object') {
+            throw new Error('Unexpected type of parameters. Expecting config to be object.');
         }
+
+        let phantomPath = typeof(config.phantomPath) === 'string' ? config.phantomPath : phantomjs.path;
 
         let pathToShim = path.normalize(__dirname + '/shim.js');
         logger.debug(`Starting ${phantomPath} ${args.concat([pathToShim]).join(' ')}`);
