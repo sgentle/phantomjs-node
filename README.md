@@ -91,7 +91,7 @@ phantom.create().then(function(ph) {
 
 ### `phantom#exit`
 
-Sends an exit call to phantomjs process and returns a `Promise`.
+Sends an exit call to phantomjs process.
 
 Make sure to call it on the phantom instance to kill the phantomjs process. Otherwise, the process will never exit.
 
