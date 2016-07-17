@@ -84,7 +84,6 @@ export default class Phantom {
             logger.error(`Could not spawn [${phantomPath}] executable. Please make sure phantomjs is installed correctly.`);
             logger.error(error);
             this.kill(`Process got an error: ${error}`);
-            process.exit(1);
         });
 
         this.process.stdin.on('error', (e) => {
@@ -168,7 +167,6 @@ export default class Phantom {
             return r;
         });
         logger.debug('Sending: %s', json);
-
 
         this.process.stdin.write(json + os.EOL, 'utf8');
         return promise;
