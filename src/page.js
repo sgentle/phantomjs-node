@@ -87,22 +87,38 @@ const asyncMethods = [
 
 const methods = [
     'addCookie',
+    'childFramesCount',
+    'childFramesName',
     'clearCookies',
     'close',
+    'currentFrameName',
     'deleteCookie',
-    'evaluate',
+    'evaluateAsync',
     'evaluateJavaScript',
-    'injectJs', 
+    'evaluate',
+    'getPage',
+    'goBack',
+    'goForward',
+    'go',
+    'includeJs',
+    'injectJs',
     'openUrl',
+    'open',
+    'release',
     'reload',
-    'render',
     'renderBase64',
+    'renderBuffer',
+    'render',
     'sendEvent',
     'setContent',
     'setProxy',
     'stop',
+    'switchToChildFrame',
+    'switchToFocusedFrame',
     'switchToFrame',
-    'switchToMainFrame'
+    'switchToMainFrame',
+    'switchToParentFrame',
+    'uploadFile'
 ];
 
 asyncMethods.forEach(method => {
