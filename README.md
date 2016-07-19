@@ -107,6 +107,26 @@ However, be aware that phantomjs process will get detached (and thus won't exit)
 
   The `page` object that is returned with `#createPage` is a proxy that sends all methods to `phantom`. Most method calls should be identical to PhantomJS API. You must remember that each method returns a `Promise`.
 
+### `page#setContent`
+
+`page.setContent` is used to set content and/or URL address of the page.
+
+It returns `Promise` resolving after `onLoadFinished` (handled internally), thus providing workaround for [PhantomJS issue #12750](https://github.com/ariya/phantomjs/issues/12750).
+
+The returned `Promise` can yield `'success'` or `'fail'`, as per [PhantomJS WebPage documentation](http://phantomjs.org/api/webpage/handler/on-load-finished.html), or `false` in case of IPC error.
+
+```js
+let htmlContent = '<html><head><title>setContent Title</title></head><body></body></html>';
+let pageLocation = 'http://localhost:8888/';
+page.setContent(htmlContent, pageLocation).then(function (result) {
+	if(result === 'success') {
+		console.log('Page contents set!');
+		// Other operations...
+		return page.invokeMethod('render', '/path/to/output/file', { format: 'pdf' });
+	}
+});
+```
+
 ### `page#setting`
 
 `page.settings` can be accessed via `page.setting(key)` or set via `page.setting(key, value)`. Here is an example to read `javascriptEnabled` property.
