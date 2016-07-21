@@ -7,7 +7,6 @@ phantom - Fast NodeJS API for PhantomJS
 [![Linux Build][travis-image]][travis-url]
 [![Dependencies][david-image]][david-url]
 
-
 ## Super easy to use
 ```js
 var phantom = require('phantom');
@@ -48,15 +47,15 @@ $ npm install phantom --save
 
 ## How does it work?
 
-  [v1.0.x](//github.com/amir20/phantomjs-node/tree/v1) used to use `dnode` to communicate between nodejs and phantomjs. This approach raised a lot of security restrictions and did not work well when using `cluster` or `pm2`.
+[v1.0.x](//github.com/amir20/phantomjs-node/tree/v1) used to use `dnode` to communicate between nodejs and phantomjs. This approach raised a lot of security restrictions and did not work well when using `cluster` or `pm2`.
 
-  v2.0.x has been completely rewritten to use `sysin` and `sysout` pipes to communicate with the phantomjs process. It works out of the box with `cluster` and `pm2`. If you want to see the messages that are sent try adding `DEBUG=true` to your execution, ie. `DEBUG=true node path/to/test.js`. The new code is much cleaner and simpler. PhantomJS is started with `shim.js` which proxies all messages to the `page` or `phantom` object.
+v2.0.x has been completely rewritten to use `sysin` and `sysout` pipes to communicate with the phantomjs process. It works out of the box with `cluster` and `pm2`. If you want to see the messages that are sent try adding `DEBUG=true` to your execution, ie. `DEBUG=true node path/to/test.js`. The new code is much cleaner and simpler. PhantomJS is started with `shim.js` which proxies all messages to the `page` or `phantom` object.
 
 ## Migrating from 1.0.x
 
-  Version 2.0.x is not backward compatible with previous versions. Most notability, method calls do not take a callback function anymore. Since `node` supports `Promise`, each of the methods return a promise. Instead of writing `page.open(url, function(){})` you would have to write `page.open(url).then(function(){})`.
+Version 2.0.x is not backward compatible with previous versions. Most notability, method calls do not take a callback function anymore. Since `node` supports `Promise`, each of the methods return a promise. Instead of writing `page.open(url, function(){})` you would have to write `page.open(url).then(function(){})`.
 
-  The API is much more consistent now. All properties can be read with `page.property(key)` and settings can be read with `page.setting(key)`. See below for more example.
+The API is much more consistent now. All properties can be read with `page.property(key)` and settings can be read with `page.setting(key)`. See below for more example.
 
 ## `phantom` object API
 
@@ -105,11 +104,15 @@ However, be aware that phantomjs process will get detached (and thus won't exit)
 
 ## `page` object API
 
-  The `page` object that is returned with `#createPage` is a proxy that sends all methods to `phantom`. Most method calls should be identical to PhantomJS API. You must remember that each method returns a `Promise`.
+The `page` object that is returned with `#createPage` is a proxy that sends all methods to `phantom`. Most method calls should be identical to PhantomJS API. You must remember that each method returns a `Promise`.
 
-### `page#setContent`
+For list of available methods, properties and events see [PhantomJS documentation of WebPage module](http://phantomjs.org/api/webpage/).
 
-`page.setContent` is used to set content and/or URL address of the page.
+### `page#loadContent`
+
+`page.loadContent` is used to set content and/or URL address of the page.
+
+It differs from `page.invokeMethod('setContent')` by waiting for contents to fully load.
 
 It returns `Promise` resolving after `onLoadFinished` (handled internally), thus providing workaround for [PhantomJS issue #12750](https://github.com/ariya/phantomjs/issues/12750).
 
@@ -139,21 +142,20 @@ page.setting('javascriptEnabled').then(function(value){
 
 ### `page#property`
 
+Page properties can be read using the `#property(key)` method.
 
-  Page properties can be read using the `#property(key)` method.
-
-  ```js
+```js
 page.property('plainText').then(function(content) {
   console.log(content);
 });
-  ```
+```
 
-  Page properties can be set using the `#property(key, value)` method.
+Page properties can be set using the `#property(key, value)` method.
 
-  ```js
+```js
 page.property('viewportSize', {width: 800, height: 600}).then(function() {
 });
-  ```
+```
 When setting values, using `then()` is optional. But beware that the next method to phantom will block until it is ready to accept a new message.
 
 You can set events using `#property()` because they are property members of `page`.
@@ -188,7 +190,6 @@ page.property('onResourceRequested', function(requestData, networkRequest, out) 
 outObj.property('urls').then(function(urls){
    console.log(urls);
 });
-
 ```
 
 ### `page#on`
@@ -309,10 +310,19 @@ page.invokeMethod('evaluate', function(selector) {
 });
 ```
 
+#### `page#invokeMethod('setContent', expectedContent, expectedLocation)`
+
+Set content and/or URL address of the page, without waiting for additional elements to load.
+
+If `page#invokeMethod('render', ...)` is called right after, it might not execute properly (see `page#loadContent` notes).
+
+#### `page#invokeMethod('render', filename, [{format, quality}])`
+
+Renders the page and saves rendered file as `filename`.
 
 ## Tests
 
-  To run the test suite, first install the dependencies, then run `npm test`:
+To run the test suite, first install the dependencies, then run `npm test`:
 
 ```bash
 $ npm install
@@ -321,17 +331,17 @@ $ npm test
 
 ## Contributing
 
-  This package is under development. Pull requests are welcomed. Please make sure tests are added for new functionalities and that your build does pass in TravisCI.
+This package is under development. Pull requests are welcomed. Please make sure tests are added for new functionalities and that your build does pass in TravisCI.
 
 ## People
 
-  The current lead maintainer is [Amir Raminfar](https://github.com/amir20)
+The current lead maintainer is [Amir Raminfar](https://github.com/amir20)
 
-  [List of all contributors](https://github.com/amir20/phantomjs-node/graphs/contributors)
+[List of all contributors](https://github.com/amir20/phantomjs-node/graphs/contributors)
 
 ## License
 
-  [ISC](LICENSE.md)
+[ISC](LICENSE.md)
 
 [npm-image]: https://img.shields.io/npm/v/phantom.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/phantom
