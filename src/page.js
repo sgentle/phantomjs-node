@@ -43,40 +43,49 @@ export default class Page {
     off(event) {
         return this.phantom.off(event, this.target);
     }
-    
+
     /**
      * Invokes an asynchronous method
      */
     invokeAsyncMethod() {
         return this.phantom.execute(this.target, 'invokeAsyncMethod', [].slice.call(arguments));
     }
-    
+
     /**
      * Invokes a method
      */
     invokeMethod() {
         return this.phantom.execute(this.target, 'invokeMethod', [].slice.call(arguments));
     }
-    
+
     /**
      * Defines a method
      */
     defineMethod(name, definition) {
         return this.phantom.execute(this.target, 'defineMethod', [name, definition]);
     }
-    
+
     /**
      * Gets or sets a property
      */
     property() {
         return this.phantom.execute(this.target, 'property', [].slice.call(arguments));
     }
-    
+
     /**
      * Gets or sets a setting
      */
     setting() {
         return this.phantom.execute(this.target, 'setting', [].slice.call(arguments));
+    }
+
+    /**
+     * Set contents of the page and wait for them to load
+     * @param {string} html Page content
+     * @param {string} url Page URL
+     */
+    loadContent() {
+        return this.phantom.execute(this.target, 'loadPageContent', [].slice.call(arguments));
     }
 }
 
@@ -92,7 +101,7 @@ const methods = [
     'deleteCookie',
     'evaluate',
     'evaluateJavaScript',
-    'injectJs', 
+    'injectJs',
     'openUrl',
     'reload',
     'render',
@@ -108,11 +117,11 @@ const methods = [
 asyncMethods.forEach(method => {
     Page.prototype[method] = function () {
         return this.invokeAsyncMethod.apply(this, [method].concat([].slice.call(arguments)));
-    }; 
+    };
 });
 
 methods.forEach(method => {
     Page.prototype[method] = function () {
         return this.invokeMethod.apply(this, [method].concat([].slice.call(arguments)));
-    }
+    };
 });

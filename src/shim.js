@@ -91,8 +91,24 @@ const commands = {
         completeCommand(command);
     },
 
+    loadPageContent: function (command) {
+        let page = objectSpace[command.target];
+        if(!page) {
+            command.response = false;
+            return completeCommand(command);
+        }
+
+        page.onLoadFinished = result => {
+            page.onLoadFinished = null;
+            command.response = result;
+            completeCommand(command);
+        }
+
+        page.setContent(command.params[0], command.params[1]);
+    },
+
     noop: command => completeCommand(command),
-    
+
     invokeAsyncMethod: function (command) {
         let target = objectSpace[command.target];
         target[command.params[0]].apply(target, command.params.slice(1).concat(result => {
@@ -100,14 +116,14 @@ const commands = {
             completeCommand(command);
         }));
     },
-    
+
     invokeMethod: function (command) {
         let target = objectSpace[command.target];
         let method = target[command.params[0]];
         command.response = method.apply(target, command.params.slice(1));
         completeCommand(command);
     },
-    
+
     defineMethod: function (command) {
         let target = objectSpace[command.target];
         target[command.params[0]] = command.params[1];
