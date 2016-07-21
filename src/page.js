@@ -80,11 +80,11 @@ export default class Page {
     }
 
     /**
-     * Set contents of the page
+     * Set contents of the page and wait for them to load
      * @param {string} html Page content
      * @param {string} url Page URL
      */
-    setContent() {
+    loadContent() {
         return this.phantom.execute(this.target, 'loadPageContent', [].slice.call(arguments));
     }
 }
@@ -107,6 +107,7 @@ const methods = [
     'render',
     'renderBase64',
     'sendEvent',
+    'setContent',
     'setProxy',
     'stop',
     'switchToFrame',
