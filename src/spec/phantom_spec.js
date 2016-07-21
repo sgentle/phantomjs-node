@@ -40,7 +40,7 @@ describe('Phantom', () => {
                 path: null
             }
         }).default;
-        
+
         expect(() => new ProxyPhantom()).toThrow();
     });
 
@@ -55,15 +55,16 @@ describe('Phantom', () => {
         pp.exit();
     });
 
-    it('#create([], {phantomPath: \'phantomjs\'}) execute phantomjs from custom path with no parameters', () => {
+    it('#create([], {phantomPath: \'custom/phantom/path\'}) executes phantomjs from custom path with no parameters', () => {
         spyOn(child_process, 'spawn').and.callThrough();
         let ProxyPhantom = proxyquire('../phantom', {
             child_process: child_process
         }).default;
 
-        let pp = new ProxyPhantom([], {phantomPath: 'phantomjs'});
+        let pathToPhantom = path.normalize(__dirname + '/../../node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs');
+        let pp = new ProxyPhantom([], {phantomPath: pathToPhantom});
         let pathToShim = path.normalize(__dirname + '/../shim.js');
-        expect(child_process.spawn).toHaveBeenCalledWith('phantomjs', [pathToShim]);
+        expect(child_process.spawn).toHaveBeenCalledWith(pathToPhantom, [pathToShim]);
         pp.exit();
     });
 
