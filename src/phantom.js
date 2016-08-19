@@ -107,6 +107,15 @@ export default class Phantom {
      * Returns a value in the global space of phantom process
      * @returns {Promise}
      */
+    setLogLevel(level) {
+        if (typeof level === 'string')
+          logger.transports.console.level = level;
+    }
+
+    /**
+     * Returns a value in the global space of phantom process
+     * @returns {Promise}
+     */
     windowProperty() {
         return this.execute('phantom', 'windowProperty', [].slice.call(arguments));
     }

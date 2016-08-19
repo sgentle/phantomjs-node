@@ -103,6 +103,22 @@ It may be a good idea to register handlers to `SIGTERM` and `SIGINT` signals wit
 
 However, be aware that phantomjs process will get detached (and thus won't exit) if node process that spawned it receives `SIGKILL`!
 
+### `phantom#setLogLevel`
+
+Logging is achieved using the Winston library.
+
+The default logging level is `info`, and can be set to `debug` by setting the `DEBUG` environment variable to `true`.
+
+By using `setLogLevel(level)` you can switch to any logging level at run time.
+
+```js
+var phantom = require('phantom');
+phantom.create().then(function(ph) {
+    ph.setLogLevel('warn');
+    // use ph
+});
+```
+
 ## `page` object API
 
   The `page` object that is returned with `#createPage` is a proxy that sends all methods to `phantom`. Most method calls should be identical to PhantomJS API. You must remember that each method returns a `Promise`.
