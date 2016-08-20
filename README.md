@@ -69,11 +69,16 @@ If you want add parameters to the phantomjs process you can do so by doing:
 var phantom = require('phantom');
 phantom.create(['--ignore-ssl-errors=yes', '--load-images=no']).then(...)
 ```
-You can also explicitly set phantomjs path to use by passing it in cofig object:
+You can also explicitly set the phantomjs path to use and a logger object by passing them in config object:
 ```js
 var phantom = require('phantom');
-phantom.create([], {phantomPath: '/path/to/phantomjs'}).then(...)
+phantom.create([], {
+    phantomPath: '/path/to/phantomjs',
+    logger: yourCustomLogger,
+}).then(...)
 ```
+
+The `logger` parameter may be a `logger` object as described below on the `phantom.logger` property or a log level like `"warn"` or `"debug"` (It uses the same log levels as `npm`). Have a look at the `logger` property below for more information about this parameter.
 
 ### `phantom#createPage`
 
@@ -103,18 +108,24 @@ It may be a good idea to register handlers to `SIGTERM` and `SIGINT` signals wit
 
 However, be aware that phantomjs process will get detached (and thus won't exit) if node process that spawned it receives `SIGKILL`!
 
-### `phantom#getLogger`
+### `phantom#logger`
 
-Returns the [winston](https://www.npmjs.com/package/winston) logger instance used to log information to `stdout`. The returned logger is local to its `phantom` instance.
+The property containing the [winston](https://www.npmjs.com/package/winston) `logger` used by a `phantom` instance. You may change parameters like verbosity or redirect messages to a file with it.
 
-It allows you to increase or decrease the verbosity, redirect messages to a file, and so on.
+You can also use your own logger here but you should consider providing it to the `create` method since logs are written inside the `phantom` constructor too. The `logger` object have to contain at least four functions : `debug`, `info`, `warn` and `error`.
 
-Also note that the default logging level is `info` and can be set to `debug` by setting the `DEBUG` environment variable to `"true"`.
-
+Here are two ways of handling it :
 ```js
-var phantom = require('phantom');
+/* Set the log level to 'debug' after creating  */
 phantom.create().then(function(ph) {
-    ph.setLogLevel('warn');
+    ph.logger.transports.console.level = 'debug';
+    // use ph
+});
+
+/* Set your logger object directly in the create call */
+var log = console.log;
+var nolog = function() {};
+phantom.create([], { info: log, warn: log, debug: nolog, error: log }).then(function(ph) {
     // use ph
 });
 ```

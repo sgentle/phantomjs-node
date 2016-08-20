@@ -36,15 +36,34 @@ export default class Phantom {
         }
 
         let pathToShim = path.normalize(__dirname + '/shim.js');
-        
-        this.logger = new winston.Logger({
-            transports: [
-                new winston.transports.Console({
-                    level: process.env.DEBUG === 'true' ? 'debug' : 'info',
-                    colorize: true
-                })
-            ]
-        });
+
+        let loggerLevel = process.env.DEBUG === 'true' ? 'debug' : 'info';
+        if(typeof config.logger === 'object') {
+            let isOk = true;
+            let checkList = ['debug', 'info', 'warn', 'error'];
+            for(let i = 0; i < checkList.length; i += 1) {
+                if(typeof config.logger[checkList[i]] !== 'function') {
+                    isOk = false;
+                    break;
+                }
+            }
+            if(isOk) {
+                this.logger = config.logger;
+            }
+        } else if(typeof config.logger === 'string') {
+            loggerLevel = config.logger;
+        }
+
+        if(!this.logger) {
+            this.logger = new winston.Logger({
+                transports: [
+                    new winston.transports.Console({
+                        level: loggerLevel,
+                        colorize: true
+                    })
+                ]
+            });
+        }
 
         this.logger.debug(`Starting ${phantomPath} ${args.concat([pathToShim]).join(' ')}`);
 
@@ -102,14 +121,6 @@ export default class Phantom {
         });
 
         this.heartBeatId = setInterval(this._heartBeat.bind(this), 100);
-    }
-
-    /**
-     * Returns the winston logger instance used to log messages
-     * @returns {winston}
-     */
-    getLogger() {
-        return this.logger;
     }
 
     /**
