@@ -103,13 +103,13 @@ It may be a good idea to register handlers to `SIGTERM` and `SIGINT` signals wit
 
 However, be aware that phantomjs process will get detached (and thus won't exit) if node process that spawned it receives `SIGKILL`!
 
-### `phantom#setLogLevel`
+### `phantom#getLogger`
 
-Logging is achieved using the Winston library.
+Returns the [winston](https://www.npmjs.com/package/winston) logger instance used to log information to `stdout`. The returned logger is local to its `phantom` instance.
 
-The default logging level is `info`, and can be set to `debug` by setting the `DEBUG` environment variable to `true`.
+It allows you to increase or decrease the verbosity, redirect messages to a file, and so on.
 
-By using `setLogLevel(level)` you can switch to any logging level at run time.
+Also note that the default logging level is `info` and can be set to `debug` by setting the `DEBUG` environment variable to `"true"`.
 
 ```js
 var phantom = require('phantom');
