@@ -542,7 +542,7 @@ describe('Page', () => {
         let page = yield phantom.createPage();
         yield page.open('http://localhost:8888/test.html');
         let response = yield page.invokeMethod('evaluate', 'function () { return document.title }');
-        expect(response).toEqual('Page Title'); 
+        expect(response).toEqual('Page Title');
     });
 
     it('#invokeMethod(\'renderBase64\') executes correctly', function*() {
@@ -579,4 +579,18 @@ describe('Page', () => {
         expect(text).toEqual('hi, http://phantomjs.org/');
     });
 
+    it('#goBack()', function(done) {
+        let page;
+        phantom.createPage().then(function(instance) {
+            page = instance;
+            return page.open('http://localhost:8888/test1');
+        }).then(function() {
+            return page.open('http://localhost:8888/test2')
+        }).then(function() {
+            page.on('onNavigationRequested', false, function() {
+                done();
+            });
+            return page.goBack();
+        });
+    });
 });
