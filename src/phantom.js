@@ -1,6 +1,5 @@
 import phantomjs from "phantomjs-prebuilt";
 import {spawn} from "child_process";
-import winston from "winston";
 import os from "os";
 import path from "path";
 import Linerstream from "linerstream";
@@ -20,6 +19,7 @@ export default class Phantom {
      * @param args command args to pass to phantom process
      * @param [config] configuration object
      * @param [config.phantomPath] path to phantomjs executable
+     * @param [config.logger] object containing functions used for logging
      */
     constructor(args = [], config = {}) {
         if (!Array.isArray(args)) {
@@ -37,33 +37,17 @@ export default class Phantom {
 
         let pathToShim = path.normalize(__dirname + '/shim.js');
 
-        let loggerLevel = process.env.DEBUG === 'true' ? 'debug' : 'info';
-        if(typeof config.logger === 'object') {
-            let isOk = true;
-            let checkList = ['debug', 'info', 'warn', 'error'];
-            for(let i = 0; i < checkList.length; i += 1) {
-                if(typeof config.logger[checkList[i]] !== 'function') {
-                    isOk = false;
-                    break;
-                }
-            }
-            if(isOk) {
-                this.logger = config.logger;
-            }
-        } else if(typeof config.logger === 'string') {
-            loggerLevel = config.logger;
+        if (typeof config.logger !== 'object') {
+            config.logger = {};
         }
 
-        if(!this.logger) {
-            this.logger = new winston.Logger({
-                transports: [
-                    new winston.transports.Console({
-                        level: loggerLevel,
-                        colorize: true
-                    })
-                ]
-            });
+        let checkList = ['debug', 'info', 'warn', 'error'];
+        for (let i = 0; i < checkList.length; i += 1) {
+            if (typeof config.logger[checkList[i]] !== 'function') {
+                config.logger[checkList[i]] = () => undefined;
+            }
         }
+        this.logger = config.logger;
 
         this.logger.debug(`Starting ${phantomPath} ${args.concat([pathToShim]).join(' ')}`);
 
