@@ -1,6 +1,5 @@
 import phantomjs from "phantomjs-prebuilt";
 import {spawn} from "child_process";
-import winston from "winston";
 import os from "os";
 import path from "path";
 import Linerstream from "linerstream";
@@ -8,15 +7,6 @@ import Page from "./page";
 import Command from "./command";
 import OutObject from "./out_object";
 import EventEmitter from "events";
-
-const logger = new winston.Logger({
-    transports: [
-        new winston.transports.Console({
-            level: process.env.DEBUG === 'true' ? 'debug' : 'info',
-            colorize: true
-        })
-    ]
-});
 
 /**
  * A phantom instance that communicates with phantomjs
@@ -29,6 +19,7 @@ export default class Phantom {
      * @param args command args to pass to phantom process
      * @param [config] configuration object
      * @param [config.phantomPath] path to phantomjs executable
+     * @param [config.logger] object containing functions used for logging
      */
     constructor(args = [], config = {}) {
         if (!Array.isArray(args)) {
@@ -45,7 +36,20 @@ export default class Phantom {
         }
 
         let pathToShim = path.normalize(__dirname + '/shim.js');
-        logger.debug(`Starting ${phantomPath} ${args.concat([pathToShim]).join(' ')}`);
+
+        if (typeof config.logger !== 'object') {
+            config.logger = {};
+        }
+
+        let checkList = ['debug', 'info', 'warn', 'error'];
+        for (let i = 0; i < checkList.length; i += 1) {
+            if (typeof config.logger[checkList[i]] !== 'function') {
+                config.logger[checkList[i]] = () => undefined;
+            }
+        }
+        this.logger = config.logger;
+
+        this.logger.debug(`Starting ${phantomPath} ${args.concat([pathToShim]).join(' ')}`);
 
         this.process = spawn(phantomPath, args.concat([pathToShim]));
         this.process.stdin.setEncoding('utf-8');
@@ -57,7 +61,7 @@ export default class Phantom {
             const message = data.toString('utf8');
             if (message[0] === '>') {
                 let json = message.substr(1);
-                logger.debug('Parsing: %s', json);
+                this.logger.debug('Parsing: %s', json);
                 const command = JSON.parse(json);
 
                 let deferred = this.commands.get(command.id).deferred;
@@ -69,7 +73,7 @@ export default class Phantom {
                 this.commands.delete(command.id);
             } else if (message.indexOf('<event>') === 0) {
                 let json = message.substr(7);
-                logger.debug('Parsing: %s', json);
+                this.logger.debug('Parsing: %s', json);
                 const event = JSON.parse(json);
 
                 var emitter = this.events[event.target];
@@ -77,26 +81,26 @@ export default class Phantom {
                     emitter.emit.apply(emitter, [event.type].concat(event.args));
                 }
             } else {
-                logger.info(message);
+                this.logger.info(message);
             }
         });
 
-        this.process.stderr.on('data', data => logger.error(data.toString('utf8')));
-        this.process.on('exit', code => logger.debug(`Child exited with code {${code}}`));
+        this.process.stderr.on('data', data => this.logger.error(data.toString('utf8')));
+        this.process.on('exit', code => this.logger.debug(`Child exited with code {${code}}`));
         this.process.on('error', error => {
-            logger.error(`Could not spawn [${phantomPath}] executable. Please make sure phantomjs is installed correctly.`);
-            logger.error(error);
+            this.logger.error(`Could not spawn [${phantomPath}] executable. Please make sure phantomjs is installed correctly.`);
+            this.logger.error(error);
             this.kill(`Process got an error: ${error}`);
             process.exit(1);
         });
 
         this.process.stdin.on('error', (e) => {
-            logger.debug(`Child process received error ${e}, sending kill signal`);
+            this.logger.debug(`Child process received error ${e}, sending kill signal`);
             this.kill(`Error reading from stdin: ${e}`);
         });
 
         this.process.stdout.on('error', (e) => {
-            logger.debug(`Child process received error ${e}, sending kill signal`);
+            this.logger.debug(`Child process received error ${e}, sending kill signal`);
             this.kill(`Error reading from stdout: ${e}`);
         });
 
@@ -121,7 +125,7 @@ export default class Phantom {
             if (typeof Proxy === 'function') {
                 page = new Proxy(page, {
                     set: function (target, prop) {
-                        logger.warn(`Using page.${prop} = ...; is not supported. Use page.property('${prop}', ...) instead. See the README file for more examples of page#property.`);
+                        this.logger.warn(`Using page.${prop} = ...; is not supported. Use page.property('${prop}', ...) instead. See the README file for more examples of page#property.`);
                         return false;
                     }
                 });
@@ -159,7 +163,7 @@ export default class Phantom {
                 return undefined;
             } else if (typeof val === 'function') {
                 if (!val.hasOwnProperty('prototype')) {
-                    logger.warn('Arrow functions such as () => {} are not supported in PhantomJS. Please use function(){} or compile to ES5.');
+                    this.logger.warn('Arrow functions such as () => {} are not supported in PhantomJS. Please use function(){} or compile to ES5.');
                     throw new Error('Arrow functions such as () => {} are not supported in PhantomJS.');
                 }
                 return val.toString();
@@ -174,7 +178,7 @@ export default class Phantom {
             command.deferred.reject = rej;
         });
 
-        logger.debug('Sending: %s', json);
+        this.logger.debug('Sending: %s', json);
 
         this.process.stdin.write(json + os.EOL, 'utf8');
 

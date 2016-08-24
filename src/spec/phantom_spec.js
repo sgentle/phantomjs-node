@@ -66,6 +66,14 @@ describe('Phantom', () => {
         pp.exit();
     });
 
+    it('#create([], {logger: logger}) to log messages', () => {
+        let logger = jasmine.createSpyObj('logger', ['debug', 'info', 'warn', 'error']);
+
+        let pp = new Phantom([], {logger: logger});
+        expect(logger.debug).toHaveBeenCalledWith(jasmine.any(String));
+        pp.exit();
+    });
+
     it('#create("--ignore-ssl-errors=yes") to throw an exception', () => {
         expect(() => new Phantom('--ignore-ssl-errors=yes')).toThrow();
     });
