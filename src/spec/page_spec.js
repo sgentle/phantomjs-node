@@ -42,7 +42,7 @@ describe('Page', () => {
 
     it('#property(\'onResourceRequested\', function(){}) sets property', function*() {
         let page = yield phantom.createPage();
-        yield page.property('onResourceRequested', (requestData, networkRequest) => {
+        yield page.property('onResourceRequested', function(requestData, networkRequest){
             networkRequest.changeUrl('http://localhost:8888/foo-bar-xyz');
         });
         yield page.open('http://localhost:8888/whatever');
@@ -52,7 +52,7 @@ describe('Page', () => {
 
     it('#property(\'onResourceRequested\', function(){}, params...) passes parameters', function*() {
         let page = yield phantom.createPage();
-        page.property('onResourceRequested', (requestData, networkRequest, foo, a, b) => {
+        page.property('onResourceRequested', function(requestData, networkRequest, foo, a, b) {
             RESULT = [foo, a, b];
         }, 'foobar', 1, -100);
         yield page.open('http://localhost:8888/whatever');
@@ -91,7 +91,7 @@ describe('Page', () => {
         let file = 'test.pdf';
         yield page.render(file);
         expect(function () {
-            fs.accessSync(file, fs.F_OK)
+            fs.accessSync(file, fs.F_OK);
         }).not.toThrow();
         fs.unlinkSync(file);
     });
@@ -113,7 +113,7 @@ describe('Page', () => {
         let page = yield phantom.createPage();
         yield page.open('http://localhost:8888/test.html');
         let response = yield page.evaluate(function () {
-            return document.title
+            return document.title;
         });
         expect(response).toEqual('Page Title');
     });
@@ -121,7 +121,7 @@ describe('Page', () => {
     it('#evaluate(function(){...}) executes correctly', function*() {
         let page = yield phantom.createPage();
         let response = yield page.evaluate(function () {
-            return 'test'
+            return 'test';
         });
         expect(response).toEqual('test');
     });
@@ -204,7 +204,7 @@ describe('Page', () => {
         let file = 'test.png';
         yield page.render(file);
         expect(function () {
-            fs.accessSync(file, fs.F_OK)
+            fs.accessSync(file, fs.F_OK);
         }).not.toThrow();
         fs.unlinkSync(file);
     });
@@ -625,7 +625,7 @@ describe('Page', () => {
             page = instance;
             return page.open('http://localhost:8888/test1');
         }).then(function () {
-            return page.open('http://localhost:8888/test2')
+            return page.open('http://localhost:8888/test2');
         }).then(function () {
             page.on('onNavigationRequested', false, function () {
                 done();

@@ -70,7 +70,7 @@ export default class Phantom {
             this.logger.transports.console.level = logLevel;
         }
 
-        const pathToShim = path.normalize(__dirname + '/shim.js');
+        const pathToShim = path.normalize(__dirname + '/shim/index.js');
         this.logger.debug(`Starting ${phantomPath} ${args.concat([pathToShim]).join(' ')}`);
 
         this.process = spawn(phantomPath, args.concat([pathToShim]));

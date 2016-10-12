@@ -28,7 +28,7 @@ describe('Phantom', () => {
         }).default;
 
         let pp = new ProxyPhantom();
-        let pathToShim = path.normalize(__dirname + '/../shim.js');
+        let pathToShim = path.normalize(__dirname + '/../shim/index.js');
         expect(child_process.spawn).toHaveBeenCalledWith(phantomjs.path, [pathToShim]);
         pp.exit();
     });
@@ -49,7 +49,7 @@ describe('Phantom', () => {
             child_process: child_process
         }).default;
         let pp = new ProxyPhantom(['--ignore-ssl-errors=yes']);
-        let pathToShim = path.normalize(__dirname + '/../shim.js');
+        let pathToShim = path.normalize(__dirname + '/../shim/index.js');
         expect(child_process.spawn).toHaveBeenCalledWith(phantomjs.path, ['--ignore-ssl-errors=yes', pathToShim]);
         pp.exit();
     });
@@ -61,7 +61,7 @@ describe('Phantom', () => {
         }).default;
 
         let pp = new ProxyPhantom([], {phantomPath: 'phantomjs'});
-        let pathToShim = path.normalize(__dirname + '/../shim.js');
+        let pathToShim = path.normalize(__dirname + '/../shim/index.js');
         expect(child_process.spawn).toHaveBeenCalledWith('phantomjs', [pathToShim]);
         pp.exit();
     });
