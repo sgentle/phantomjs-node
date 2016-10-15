@@ -28,7 +28,7 @@ export default class Page {
         } else {
             args = [].slice.call(arguments, 3);
             mustRunOnPhantom = runOnPhantom;
-            callback = mustRunOnPhantom ? listener : listener.bind(this)
+            callback = mustRunOnPhantom ? listener : listener.bind(this);
         }
 
         return this.phantom.on(event, this.target, mustRunOnPhantom, callback, args);
@@ -117,5 +117,5 @@ asyncMethods.forEach(method => {
 methods.forEach(method => {
     Page.prototype[method] = function () {
         return this.invokeMethod.apply(this, [method].concat([].slice.call(arguments)));
-    }
+    };
 });
