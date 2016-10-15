@@ -75,10 +75,10 @@ describe('Phantom', () => {
     });
 
     it('#create([], {logger: logger}) to log messages', () => {
-        let logger = jasmine.createSpyObj('logger', ['debug', 'info', 'warn', 'error']);
+        let logger = {debug: jest.fn()};
 
         let pp = new Phantom([], {logger});
-        expect(logger.debug).toHaveBeenCalledWith(jasmine.any(String));
+        expect(logger.debug).toHaveBeenCalled();
         pp.exit();
     });
 

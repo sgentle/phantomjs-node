@@ -384,7 +384,7 @@ describe('Page', () => {
 
     it('#property = something shows a warning', async () => {
         if (typeof Proxy === 'function') {
-            let logger = jasmine.createSpyObj('logger', ['debug', 'info', 'warn', 'error']);
+            let logger = {warn: jest.fn()};
 
             let pp = new Phantom([], {logger});
             let page = await pp.createPage();
@@ -392,9 +392,9 @@ describe('Page', () => {
             try {
                 page.foo = 'test';
             } catch (e) {
-                expect(e).toEqual(jasmine.any(TypeError));
+                expect(e).toBeInstanceOf(TypeError);
             } finally {
-                expect(logger.warn).toHaveBeenCalledWith(jasmine.any(String));
+                expect(logger.warn).toHaveBeenCalled();
                 pp.exit();
             }
         }

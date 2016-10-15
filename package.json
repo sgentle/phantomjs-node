@@ -36,6 +36,7 @@
     "babel-preset-node5": "^11.1.0",
     "del": "^2.2.0",
     "eslint": "^3.8.0",
+    "eslint-plugin-babel": "^3.3.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-eslint": "^3.0.0",

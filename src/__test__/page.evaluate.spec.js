@@ -1,5 +1,4 @@
 import http from "http";
-import fs from "fs";
 import Phantom from "../phantom";
 import "babel-polyfill";
 

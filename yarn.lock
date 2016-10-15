@@ -1230,6 +1230,10 @@ eslint, eslint@^3.0.0:
     text-table "~0.2.0"
     user-home "^2.0.0"
 
+eslint-plugin-babel:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-babel/-/eslint-plugin-babel-3.3.0.tgz#2f494aedcf6f4aa4e75b9155980837bc1fbde193"
+
 espree@^3.3.1:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/espree/-/espree-3.3.2.tgz#dbf3fadeb4ecb4d4778303e50103b3d36c88b89c"
