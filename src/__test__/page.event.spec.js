@@ -1,6 +1,6 @@
-import http from "http";
-import Phantom from "../phantom";
-import "babel-polyfill";
+import http from 'http';
+import Phantom from '../phantom';
+import 'babel-polyfill';
 
 describe('Page', () => {
     let server;
@@ -12,7 +12,8 @@ describe('Page', () => {
             } else if (request.url === '/test.html') {
                 response.end('<html><head><title>Page Title</title></head><body>Test</body></html>');
             } else if (request.url === '/upload.html') {
-                response.end('<html><head><title>Page Title</title></head><body><input type="file" id="upload" /></body></html>');
+                response.end('<html><head><title>Page Title</title></head>' +
+                    '<body><input type="file" id="upload" /></body></html>');
             } else {
                 response.end('hi, ' + request.url);
             }
@@ -29,7 +30,7 @@ describe('Page', () => {
         let page = await phantom.createPage();
         let runnedHere = false;
 
-        await page.on('onResourceReceived', function () {
+        await page.on('onResourceReceived', function() {
             runnedHere = true;
         });
 
@@ -42,7 +43,7 @@ describe('Page', () => {
         let page = await phantom.createPage();
         let runnedHere = false;
 
-        await page.on('onResourceReceived', function () {
+        await page.on('onResourceReceived', function() {
             runnedHere = true;
         });
 
@@ -53,13 +54,13 @@ describe('Page', () => {
         let page = await phantom.createPage();
         let runnedHere = false;
 
-        await page.on('onResourceReceived', function () {
+        await page.on('onResourceReceived', function() {
             runnedHere = true;
         });
 
         let runnedHereToo = false;
 
-        await page.on('onResourceReceived', function () {
+        await page.on('onResourceReceived', function() {
             runnedHereToo = true;
         });
 
@@ -73,7 +74,7 @@ describe('Page', () => {
         let page = await phantom.createPage();
         let parameterProvided = false;
 
-        await page.on('onResourceReceived', function (status, param) {
+        await page.on('onResourceReceived', function(status, param) {
             parameterProvided = param;
         }, 'param');
 
@@ -86,7 +87,7 @@ describe('Page', () => {
         let page = await phantom.createPage();
         let runnedHere = false;
 
-        await page.on('onLoadFinished', true, function () {
+        await page.on('onLoadFinished', true, function() {
             runnedHere = true;
             runnedInPhantomRuntime = true;
         });
@@ -102,7 +103,7 @@ describe('Page', () => {
     it('#on() can pass parameters to functions to be executed in phantom runtime', async () => {
         let page = await phantom.createPage();
 
-        await page.on('onResourceReceived', true, function (status, param) {
+        await page.on('onResourceReceived', true, function(status, param) {
             parameterProvided = param;
         }, 'param');
 
@@ -116,7 +117,7 @@ describe('Page', () => {
     it('#on() event supposed to run in phantom runtime wont run if not triggered', async () => {
         let page = await phantom.createPage();
 
-        await page.on('onResourceReceived', true, function () {
+        await page.on('onResourceReceived', true, function() {
             runnedInPhantomRuntime = true;
         });
 
@@ -129,11 +130,11 @@ describe('Page', () => {
         let page = await phantom.createPage();
         let runnedHere = false;
 
-        await page.on('onResourceReceived', true, function () {
+        await page.on('onResourceReceived', true, function() {
             runnedInPhantomRuntime = true;
         });
 
-        await page.on('onResourceReceived', function () {
+        await page.on('onResourceReceived', function() {
             runnedHere = true;
         });
 
@@ -150,7 +151,7 @@ describe('Page', () => {
         let page = await phantom.createPage();
         let runnedHere = false;
 
-        await page.on('onResourceReceived', function () {
+        await page.on('onResourceReceived', function() {
             runnedHere = true;
         });
 
@@ -165,7 +166,7 @@ describe('Page', () => {
 
         let page = await phantom.createPage();
 
-        await page.on('onResourceReceived', true, function () {
+        await page.on('onResourceReceived', true, function() {
             runnedInPhantomRuntime = true;
         });
 

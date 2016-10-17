@@ -1,5 +1,5 @@
 let mockedSpawn;
-function setMockedSpawn(mock){
+function setMockedSpawn(mock) {
     mockedSpawn = mock;
 }
 

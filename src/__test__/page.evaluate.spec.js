@@ -1,6 +1,6 @@
-import http from "http";
-import Phantom from "../phantom";
-import "babel-polyfill";
+import http from 'http';
+import Phantom from '../phantom';
+import 'babel-polyfill';
 
 describe('Page', () => {
     let server;
@@ -12,7 +12,8 @@ describe('Page', () => {
             } else if (request.url === '/test.html') {
                 response.end('<html><head><title>Page Title</title></head><body>Test</body></html>');
             } else if (request.url === '/upload.html') {
-                response.end('<html><head><title>Page Title</title></head><body><input type="file" id="upload" /></body></html>');
+                response.end('<html><head><title>Page Title</title></head>' +
+                    '<body><input type="file" id="upload" /></body></html>');
             } else {
                 response.end('hi, ' + request.url);
             }
@@ -27,7 +28,7 @@ describe('Page', () => {
     it('#evaluate(function(){return document.title}) executes correctly', async () => {
         let page = await phantom.createPage();
         await page.open('http://localhost:8918/test.html');
-        let response = await page.evaluate(function () {
+        let response = await page.evaluate(function() {
             return document.title;
         });
         expect(response).toEqual('Page Title');
@@ -35,7 +36,7 @@ describe('Page', () => {
 
     it('#evaluate(function(){...}) executes correctly', async () => {
         let page = await phantom.createPage();
-        let response = await page.evaluate(function () {
+        let response = await page.evaluate(function() {
             return 'test';
         });
         expect(response).toEqual('test');
@@ -43,7 +44,7 @@ describe('Page', () => {
 
     it('#evaluate(function(arg){...}, argument) executes correctly with a non-null argument', async () => {
         let page = await phantom.createPage();
-        let response = await page.evaluate(function (arg) {
+        let response = await page.evaluate(function(arg) {
             return 'Value: ' + arg;
         }, 'test');
         expect(response).toEqual('Value: test');
@@ -51,7 +52,7 @@ describe('Page', () => {
 
     it('#evaluate(function(arg){...}, argument) executes correctly with a null argument', async () => {
         let page = await phantom.createPage();
-        let response = await page.evaluate(function (arg) {
+        let response = await page.evaluate(function(arg) {
             return 'Value is null: ' + (arg === null);
         }, null);
         expect(response).toEqual('Value is null: true');
@@ -59,20 +60,20 @@ describe('Page', () => {
 
     it('#evaluateAsync(function(){...}) executes correctly', async () => {
         let page = await phantom.createPage();
-        await page.on('onCallback', function (response) {
+        await page.on('onCallback', function(response) {
             expect(response).toEqual('test');
         });
-        await page.evaluateAsync(function () {
+        await page.evaluateAsync(function() {
             window.callPhantom('test');
         });
     });
 
     it('#evaluateAsync(function(){...}) executes correctly with a delay and a non-null argument', async () => {
         let page = await phantom.createPage();
-        await page.on('onCallback', function (response) {
+        await page.on('onCallback', function(response) {
             expect(response).toEqual('testarg');
         });
-        await page.evaluateAsync(function (arg) {
+        await page.evaluateAsync(function(arg) {
             window.callPhantom('test' + arg);
         }, 0, 'arg');
     });

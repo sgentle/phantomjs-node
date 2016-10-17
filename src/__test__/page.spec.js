@@ -1,7 +1,7 @@
-import http from "http";
-import fs from "fs";
-import Phantom from "../phantom";
-import "babel-polyfill";
+import http from 'http';
+import fs from 'fs';
+import Phantom from '../phantom';
+import 'babel-polyfill';
 
 describe('Page', () => {
     let server;
@@ -13,7 +13,8 @@ describe('Page', () => {
             } else if (request.url === '/test.html') {
                 response.end('<html><head><title>Page Title</title></head><body>Test</body></html>');
             } else if (request.url === '/upload.html') {
-                response.end('<html><head><title>Page Title</title></head><body><input type="file" id="upload" /></body></html>');
+                response.end('<html><head><title>Page Title</title></head><body>' +
+                    '<input type="file" id="upload" /></body></html>');
             } else {
                 response.end('hi, ' + request.url);
             }
@@ -40,7 +41,7 @@ describe('Page', () => {
 
     it('#property(\'onResourceRequested\', function(){}) sets property', async () => {
         let page = await phantom.createPage();
-        await page.property('onResourceRequested', function(requestData, networkRequest){
+        await page.property('onResourceRequested', function(requestData, networkRequest) {
             networkRequest.changeUrl('http://localhost:8888/foo-bar-xyz');
         });
         await page.open('http://localhost:8888/whatever');
@@ -72,23 +73,23 @@ describe('Page', () => {
             width: '8.5in',
             height: '11in',
             header: {
-                height: "1cm",
-                contents: phantom.callback(function (pageNum, numPages) {
-                    return "<h1>Header <span style='float:right'>" + pageNum + " / " + numPages + "</span></h1>";
-                })
+                height: '1cm',
+                contents: phantom.callback(function(pageNum, numPages) {
+                    return "<h1>Header <span style='float:right'>" + pageNum + ' / ' + numPages + '</span></h1>';
+                }),
             },
             footer: {
-                height: "1cm",
-                contents: phantom.callback(function (pageNum, numPages) {
-                    return "<h1>Footer <span style='float:right'>" + pageNum + " / " + numPages + "</span></h1>";
-                })
-            }
+                height: '1cm',
+                contents: phantom.callback(function(pageNum, numPages) {
+                    return "<h1>Footer <span style='float:right'>" + pageNum + ' / ' + numPages + '</span></h1>';
+                }),
+            },
         });
 
         await page.open('http://localhost:8888/test');
         let file = 'test.pdf';
         await page.render(file);
-        expect(function () {
+        expect(function() {
             fs.accessSync(file, fs.F_OK);
         }).not.toThrow();
         fs.unlinkSync(file);
@@ -114,7 +115,7 @@ describe('Page', () => {
         // inject_example.js: window.foo = 1;
         await page.injectJs(__dirname + '/inject_example.js');
 
-        let response = await page.evaluate(function () {
+        let response = await page.evaluate(function() {
             return foo; // eslint-disable-line no-undef
         });
 
@@ -125,7 +126,7 @@ describe('Page', () => {
         let page = await phantom.createPage();
         await page.open('http://localhost:8888/test');
         await page.includeJs('http://localhost:8888/script.js');
-        let response = await page.evaluate(function () {
+        let response = await page.evaluate(function() {
             return fooBar; // eslint-disable-line no-undef
         });
         expect(response).toEqual(2);
@@ -136,7 +137,7 @@ describe('Page', () => {
         await page.open('http://localhost:8888/test');
         let file = 'test.png';
         await page.render(file);
-        expect(function () {
+        expect(function() {
             fs.accessSync(file, fs.F_OK);
         }).not.toThrow();
         fs.unlinkSync(file);
@@ -158,7 +159,7 @@ describe('Page', () => {
             'path': '/foo',
             'httponly': true,
             'secure': false,
-            'expires': (new Date()).getTime() + (1000 * 60 * 60)
+            'expires': (new Date()).getTime() + (1000 * 60 * 60),
         });
         let cookies = await page.property('cookies');
         expect(cookies[0].name).toEqual('Valid-Cookie-Name');
@@ -175,7 +176,7 @@ describe('Page', () => {
             'path': '/foo',
             'httponly': true,
             'secure': false,
-            'expires': (new Date()).getTime() + (1000 * 60 * 60)
+            'expires': (new Date()).getTime() + (1000 * 60 * 60),
         });
 
         await page.clearCookies();
@@ -194,7 +195,7 @@ describe('Page', () => {
             'path': '/foo',
             'httponly': true,
             'secure': false,
-            'expires': (new Date()).getTime() + (1000 * 60 * 60)
+            'expires': (new Date()).getTime() + (1000 * 60 * 60),
         });
 
         await page.addCookie({
@@ -204,7 +205,7 @@ describe('Page', () => {
             'path': '/foo',
             'httponly': true,
             'secure': false,
-            'expires': (new Date()).getTime() + (1000 * 60 * 60)
+            'expires': (new Date()).getTime() + (1000 * 60 * 60),
         });
 
         let cookies = await page.property('cookies');
@@ -240,7 +241,7 @@ describe('Page', () => {
     it('#windowProperty() returns a window value', async () => {
         let page = await phantom.createPage();
 
-        await page.property('onResourceReceived', function (response) {
+        await page.property('onResourceReceived', function(response) {
             lastResponse = response;
         });
         await page.open('http://localhost:8888/test');
@@ -254,7 +255,7 @@ describe('Page', () => {
 
         await page.setContent(html, 'http://localhost:8888/');
 
-        let response = await page.evaluate(function () {
+        let response = await page.evaluate(function() {
             return [document.title, location.href];
         });
 
@@ -263,12 +264,13 @@ describe('Page', () => {
 
     it('#sendEvent() sends an event', async () => {
         let page = await phantom.createPage();
-        let html = '<html  onclick="docClicked = true;"><head><title>setContent Title</title></head><body></body></html>';
+        let html = '<html  onclick="docClicked = true;"><head><title>setContent Title</title>' +
+            '</head><body></body></html>';
 
         await page.setContent(html, 'http://localhost:8888/');
         await page.sendEvent('click', 1, 2);
 
-        let response = await page.evaluate(function () {
+        let response = await page.evaluate(function() {
             return window.docClicked;
         });
 
@@ -278,12 +280,13 @@ describe('Page', () => {
 
     it('#switchToFrame(framePosition) will switch to frame of framePosition', async () => {
         let page = await phantom.createPage();
-        let html = '<html><head><title>Iframe Test</title></head><body><iframe id="testframe" src="http://localhost:8888/test.html"></iframe></body></html>';
+        let html = '<html><head><title>Iframe Test</title></head><body>' +
+            '<iframe id="testframe" src="http://localhost:8888/test.html"></iframe></body></html>';
 
         await page.setContent(html, 'http://localhost:8888/');
         await page.switchToFrame(0);
 
-        let inIframe = await page.evaluate(function () {
+        let inIframe = await page.evaluate(function() {
             // are we in the iframe?
             return window.frameElement && window.frameElement.id === 'testframe';
         });
@@ -294,14 +297,15 @@ describe('Page', () => {
 
     it('#switchToMainFrame() will switch back to the main frame', async () => {
         let page = await phantom.createPage();
-        let html = '<html><head><title>Iframe Test</title></head><body><iframe id="testframe" src="http://localhost:8888/test.html"></iframe></body></html>';
+        let html = '<html><head><title>Iframe Test</title></head><body>' +
+            '<iframe id="testframe" src="http://localhost:8888/test.html"></iframe></body></html>';
 
         await page.setContent(html, 'http://localhost:8888/');
         // need to switch to child frame here to test switchToMainFrame() works
         await page.switchToFrame(0);
         await page.switchToMainFrame();
 
-        let inMainFrame = await page.evaluate(function () {
+        let inMainFrame = await page.evaluate(function() {
             // are we in the main frame?
             return !window.frameElement;
         });
@@ -315,7 +319,7 @@ describe('Page', () => {
         let reloaded = false;
 
         await page.open('http://localhost:8888/test');
-        await page.on('onNavigationRequested', function (url, type) {
+        await page.on('onNavigationRequested', function(url, type) {
             if (type === 'Reload') {
                 reloaded = true;
             }
@@ -329,7 +333,7 @@ describe('Page', () => {
         let page = await phantom.createPage();
         await page.open('http://localhost:8888/test');
         await page.invokeAsyncMethod('includeJs', 'http://localhost:8888/script.js');
-        let response = await page.evaluate(function () {
+        let response = await page.evaluate(function() {
             return fooBar; // eslint-disable-line no-undef
         });
         expect(response).toEqual(2);
@@ -357,16 +361,16 @@ describe('Page', () => {
 
     it('#defineMethod(name, definition) defines a method', async () => {
         let page = await phantom.createPage();
-        await page.defineMethod('getZoomFactor', function () {
+        await page.defineMethod('getZoomFactor', function() {
             return this.zoomFactor; // eslint-disable-line no-invalid-this
         });
         let zoomFactor = await page.invokeMethod('getZoomFactor');
         expect(zoomFactor).toEqual(1);
     });
 
-    it('#openUrl() opens a URL', function (done) {
-        phantom.createPage().then(function (page) {
-            page.on('onLoadFinished', false, function (status) {
+    it('#openUrl() opens a URL', function(done) {
+        phantom.createPage().then(function(page) {
+            page.on('onLoadFinished', false, function(status) {
                 expect(status).toEqual('success');
                 done();
             });
@@ -400,15 +404,15 @@ describe('Page', () => {
         }
     });
 
-    it('#goBack()', function (done) {
+    it('#goBack()', function(done) {
         let page;
-        phantom.createPage().then(function (instance) {
+        phantom.createPage().then(function(instance) {
             page = instance;
             return page.open('http://localhost:8888/test1');
-        }).then(function () {
+        }).then(function() {
             return page.open('http://localhost:8888/test2');
-        }).then(function () {
-            page.on('onNavigationRequested', false, function () {
+        }).then(function() {
+            page.on('onNavigationRequested', false, function() {
                 done();
             });
             return page.goBack();
@@ -419,8 +423,8 @@ describe('Page', () => {
         let page = await phantom.createPage();
         await page.open('http://localhost:8888/upload.html');
         await page.uploadFile('#upload', process.env.PWD + '/package.json');
-        let response = await page.evaluate(function () {
-            return document.querySelector("#upload").files[0].name;
+        let response = await page.evaluate(function() {
+            return document.querySelector('#upload').files[0].name;
         });
         expect(response).toEqual('package.json');
     });

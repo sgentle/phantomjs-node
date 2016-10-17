@@ -1,5 +1,5 @@
-import phantom from "../index";
-import Phantom from "../phantom";
+import phantom from '../index';
+import Phantom from '../phantom';
 
 describe('index.js', () => {
     it('phantom#create().then() returns a new Phantom instance', done => {

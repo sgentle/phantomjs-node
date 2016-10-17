@@ -7,8 +7,7 @@
         "jest":true,
         "phantomjs": true
     },
-    "parser": "babel-eslint",
-    "extends": "eslint:recommended",
+    "extends": "fbjs",
     "parserOptions": {
         "sourceType": "module"
     },
@@ -20,10 +19,6 @@
         "linebreak-style": [
             "error",
             "unix"
-        ],
-        "semi": [
-            "error",
-            "always"
         ]
     }
 }

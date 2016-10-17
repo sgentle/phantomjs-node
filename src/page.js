@@ -82,7 +82,7 @@ export default class Page {
 
 const asyncMethods = [
     'includeJs',
-    'open'
+    'open',
 ];
 
 const methods = [
@@ -105,17 +105,17 @@ const methods = [
     'switchToFrame',
     'switchToMainFrame',
     'goBack',
-    'uploadFile'
+    'uploadFile',
 ];
 
 asyncMethods.forEach(method => {
-    Page.prototype[method] = function () {
+    Page.prototype[method] = function() {
         return this.invokeAsyncMethod.apply(this, [method].concat([].slice.call(arguments)));
     };
 });
 
 methods.forEach(method => {
-    Page.prototype[method] = function () {
+    Page.prototype[method] = function() {
         return this.invokeMethod.apply(this, [method].concat([].slice.call(arguments)));
     };
 });

@@ -1,7 +1,7 @@
-import http from "http";
-import Phantom from "../phantom";
-import "babel-polyfill";
-import OutObject from "../out_object";
+import http from 'http';
+import Phantom from '../phantom';
+import 'babel-polyfill';
+import OutObject from '../out_object';
 
 describe('Command', () => {
     let server;
@@ -15,7 +15,7 @@ describe('Command', () => {
     beforeEach(() => phantom = new Phantom());
     afterEach(() => phantom.exit());
 
-    xit('target to be set', () => {
+    it('target to be set', () => {
         expect(phantom.createOutObject().target).toBeDefined();
     });
 
@@ -28,7 +28,7 @@ describe('Command', () => {
         let page = await phantom.createPage();
         let outObj = phantom.createOutObject();
 
-        await page.property('onResourceReceived', function (response, out) {
+        await page.property('onResourceReceived', function(response, out) {
             out.lastResponse = response;
         }, outObj);
 
@@ -45,7 +45,7 @@ describe('Command', () => {
 
         outObj.test = 'fooBar$';
 
-        await page.property('onResourceReceived', function (response, out) {
+        await page.property('onResourceReceived', function(response, out) {
             out.data = out.test + response.url;
         }, outObj);
 
@@ -58,7 +58,7 @@ describe('Command', () => {
         let page = await phantom.createPage();
         let outObj = phantom.createOutObject();
 
-        await page.property('onResourceReceived', function (response, test, out) {
+        await page.property('onResourceReceived', function(response, test, out) {
             out.data = test;
         }, 'test', outObj);
 

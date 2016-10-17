@@ -1,7 +1,7 @@
-import phantomjs from "phantomjs-prebuilt";
-import path from "path";
-import Phantom from "../phantom";
-import Page from "../page";
+import phantomjs from 'phantomjs-prebuilt';
+import path from 'path';
+import Phantom from '../phantom';
+import Page from '../page';
 
 describe('Phantom', () => {
     let instance;
