@@ -6,3 +6,4 @@ lib/__test__
 *.md
 examples
 gulpfile.*
+coverage
