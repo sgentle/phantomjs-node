@@ -1,0 +1,6 @@
+lib
+examples
+node_modules
+flow-typed
+coverage
+gulpfile.babel.js
