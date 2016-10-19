@@ -53,7 +53,7 @@
   "license": "ISC",
   "scripts": {
     "lint": "eslint . && flow check",
-    "test": "npm run lint && gulp lint test",
+    "test": "npm run lint && gulp test",
     "prepublish": "gulp build"
   },
   "jest": {
