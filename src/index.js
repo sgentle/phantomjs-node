@@ -2,8 +2,6 @@
 
 import Phantom from './phantom';
 
-type Logger = {info: (s: string) => void, info: (s: string) => void, error: (s: string) => void};
-type Config = {logger: Logger, phantomPath: string, logLevel: string}
 /**
  * Retuns a Promise of a new Phantom class instance
  * @param args command args to pass to phantom process
@@ -13,7 +11,7 @@ type Config = {logger: Logger, phantomPath: string, logLevel: string}
  * @param [config.logLevel] log level to apply on the logger (if unset or default)
  * @returns {Promise}
  */
-function create(args: string[], config: Config): Promise<Phantom> {
+function create(args?: string[], config?: Config): Promise<Phantom> {
     return new Promise(resolve => resolve(new Phantom(args, config)));
 }
 
