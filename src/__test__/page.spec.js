@@ -32,7 +32,7 @@ describe('Page', () => {
 
     it('#open() a valid page', async () => {
         let page = await phantom.createPage();
-        let status = await page.open('http://localhost:8888/test');
+        let status = await page.open(`http://localhost:${port}/test`);
         expect(status).toEqual('success');
     });
 
@@ -139,7 +139,7 @@ describe('Page', () => {
 
     it('#render() creates a file', async () => {
         let page = await phantom.createPage();
-        await page.open('http://localhost:8888/test');
+        await page.open(`http://localhost:${port}/test`);
         let file = 'test.png';
         await page.render(file);
         expect(function() {
@@ -303,9 +303,9 @@ describe('Page', () => {
     it('#switchToMainFrame() will switch back to the main frame', async () => {
         let page = await phantom.createPage();
         let html = '<html><head><title>Iframe Test</title></head><body>' +
-            '<iframe id="testframe" src="http://localhost:8888/test.html"></iframe></body></html>';
+            `<iframe id="testframe" src="http://localhost:${port}/test.html"></iframe></body></html>`;
 
-        await page.setContent(html, 'http://localhost:8888/');
+        await page.setContent(html, `http://localhost:${port}/`);
         // need to switch to child frame here to test switchToMainFrame() works
         await page.switchToFrame(0);
         await page.switchToMainFrame();
