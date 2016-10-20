@@ -59,7 +59,7 @@ export default class Phantom {
                 logLevel: defaultLogLevel,
             }) {
         if (!Array.isArray(args)) {
-            throw new Error('Unexpected types of parameters. Expecting args to be array.');
+            throw new Error('Unexpected type of parameters. Expecting args to be array.');
         }
 
         if (typeof phantomPath !== 'string') {
