@@ -28,7 +28,50 @@ describe('Command', () => {
         expect(outObj).toBeInstanceOf(OutObject);
     });
 
-    it('#property() returns a value set by phantom', async () => {
+    it('#property("onResourceRequested") returns a value set by phantom', async () => {
+        let page = await phantom.createPage();
+        let outObj = phantom.createOutObject();
+
+        await page.property('onResourceRequested', function(requestData, networkRequest, out) {
+            out.lastRequest = requestData;
+        }, outObj);
+
+        await page.open(`http://localhost:${port}/test`);
+
+        let lastRequest = await outObj.property('lastRequest');
+
+        expect(lastRequest.url).toEqual(`http://localhost:${port}/test`);
+    });
+
+    it('#property("onResourceRequested") returns a value set by phantom and node', async () => {
+        let page = await phantom.createPage();
+        let outObj = phantom.createOutObject();
+
+        outObj.test = 'fooBar$';
+
+        await page.property('onResourceRequested', function(requestData, networkRequest, out) {
+            out.data = out.test + requestData.url;
+        }, outObj);
+
+        await page.open(`http://localhost:${port}/test2`);
+        let data = await outObj.property('data');
+        expect(data).toEqual(`fooBar$http://localhost:${port}/test2`);
+    });
+
+    it('#property("onResourceRequested") works with input params', async () => {
+        let page = await phantom.createPage();
+        let outObj = phantom.createOutObject();
+
+        await page.property('onResourceRequested', function(requestData, networkRequest, test, out) {
+            out.data = test;
+        }, 'test', outObj);
+
+        await page.open(`http://localhost:${port}/test2`);
+        let data = await outObj.property('data');
+        expect(data).toEqual('test');
+    });
+
+    it('#property("onResourceReceived") returns a value set by phantom', async () => {
         let page = await phantom.createPage();
         let outObj = phantom.createOutObject();
 
@@ -43,7 +86,7 @@ describe('Command', () => {
         expect(lastResponse.url).toEqual(`http://localhost:${port}/test`);
     });
 
-    it('#property() returns a value set by phantom and node', async () => {
+    it('#property("onResourceReceived") returns a value set by phantom and node', async () => {
         let page = await phantom.createPage();
         let outObj = phantom.createOutObject();
 
@@ -58,7 +101,7 @@ describe('Command', () => {
         expect(data).toEqual(`fooBar$http://localhost:${port}/test2`);
     });
 
-    it('#property() works with input params', async () => {
+    it('#property("onResourceReceived") works with input params', async () => {
         let page = await phantom.createPage();
         let outObj = phantom.createOutObject();
 
