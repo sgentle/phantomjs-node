@@ -19,7 +19,7 @@ describe('Page', () => {
     afterAll(() => server.close());
     beforeEach(() => phantom = new Phantom());
     afterEach(() => phantom.exit());
-    
+
 
     it('#on() can register an event in the page and run the code locally', async () => {
         let page = await phantom.createPage();
@@ -61,6 +61,33 @@ describe('Page', () => {
 
         await page.open(`http://localhost:${port}/test`);
 
+        expect(runnedHere).toBe(true);
+        expect(runnedHereToo).toBe(true);
+    });
+
+    it('#on("onResourceRequested", true) can abort the request', async () => {
+        let page = await phantom.createPage();
+        let abortedHere = false;
+        let runnedHere = false;
+        let regex = /test/gi;
+
+        await page.on('onResourceRequested', true, function(requestData, networkRequest) {
+            if (regex.test(requestData.url)) {
+                abortedHere = true;
+                networkRequest.abort();
+            }
+            runnedHere = true;
+        });
+
+        let runnedHereToo = false;
+
+        await page.on('onResourceRequested', function() {
+            runnedHereToo = true;
+        });
+
+        await page.open(`http://localhost:${port}/test`);
+
+        expect(abortedHere).toBe(true);
         expect(runnedHere).toBe(true);
         expect(runnedHereToo).toBe(true);
     });
