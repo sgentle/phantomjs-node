@@ -4,5 +4,8 @@
   "dependencies": {
     "co": "^4.6.0",
     "phantom": "file:../"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.18.0"
   }
 }
