@@ -35,7 +35,7 @@ describe('Command', () => {
                 let page = await phantom.createPage();
                 let outObj = phantom.createOutObject();
 
-                await page.property('onResourceRequested', true, function(requestData, networkRequest, out) {
+                await page.on('onResourceRequested', true, function(requestData, networkRequest, out) {
                     out.lastRequest = requestData;
                 }, outObj);
 
@@ -52,7 +52,7 @@ describe('Command', () => {
 
                 outObj.test = 'fooBar$';
 
-                await page.property('onResourceRequested', true, function(requestData, networkRequest, out) {
+                await page.on('onResourceRequested', true, function(requestData, networkRequest, out) {
                     out.data = out.test + requestData.url;
                 }, outObj);
 
@@ -65,7 +65,7 @@ describe('Command', () => {
                 let page = await phantom.createPage();
                 let outObj = phantom.createOutObject();
 
-                await page.property('onResourceRequested', true, function(requestData, networkRequest, test, out) {
+                await page.on('onResourceRequested', true, function(requestData, networkRequest, test, out) {
                     out.data = test;
                 }, 'test', outObj);
 
@@ -79,7 +79,7 @@ describe('Command', () => {
                 let page = await phantom.createPage();
                 let outObj = phantom.createOutObject();
 
-                await page.property('onResourceReceived', true, function(response, out) {
+                await page.on('onResourceReceived', true, function(response, out) {
                     out.lastResponse = response;
                 }, outObj);
 
@@ -96,7 +96,7 @@ describe('Command', () => {
 
                 outObj.test = 'fooBar$';
 
-                await page.property('onResourceReceived', true, function(response, out) {
+                await page.on('onResourceReceived', true, function(response, out) {
                     out.data = out.test + response.url;
                 }, outObj);
 
@@ -109,7 +109,7 @@ describe('Command', () => {
                 let page = await phantom.createPage();
                 let outObj = phantom.createOutObject();
 
-                await page.property('onResourceReceived', true, function(response, test, out) {
+                await page.on('onResourceReceived', true, function(response, test, out) {
                     out.data = test;
                 }, 'test', outObj);
 
