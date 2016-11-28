@@ -5,7 +5,7 @@
  * @param  {Number} minBytes number of bytes the ID should contain
  * @return {String} a textual ID of `bytes` entropy
  */
-export default function randId(minBytes: number) {
+export default function randId(minBytes: number = 1) {
     const ret = [];
     for (; minBytes > 0; minBytes -= 4) {
         // Make a unique string of pow(2, 32) entropy.

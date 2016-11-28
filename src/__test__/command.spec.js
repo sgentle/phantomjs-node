@@ -2,7 +2,7 @@ import Command from '../command';
 
 describe('Command', () => {
     it('id to be randomly generated', () => {
-        expect(new Command().id).toMatch(/[\da-z]{16}/);
+        expect(new Command().id).toMatch(/^[\da-z]{5,10}\.[\da-z]{5,15}$/);
     });
 
     it('id to be set correctly', () => {
