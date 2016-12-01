@@ -124,12 +124,8 @@ function read() {
     let line = system.stdin.readLine();
     if (line) {
         if (line === NOOP) {
-            // If sender has done a noop, it means sender is not busy so lets give phantom more time
-            setTimeout(function() {
-                // This will reset isNoOpInProgress at sender, so if it wants to NOOP again it can.
-                system.stdout.writeLine('>' + NOOP);
-                read();
-            }, 100);
+            system.stdout.writeLine('>' + NOOP);
+            setTimeout(read, 100);
             return;
         }
         let command = JSON.parse(line, function(key, value) {

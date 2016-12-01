@@ -98,6 +98,7 @@ export default class Phantom {
             if (message[0] === '>') {
                 // Server end has finished NOOP, lets allow NOOP again..
                 if (message === '>' + NOOP) {
+                    this.logger.debug('Received NOOP command.');
                     this.isNoOpInProgress = false;
                     return;
                 }
@@ -163,7 +164,7 @@ export default class Phantom {
             this.kill(`Error reading from stdout: ${e}`);
         });
 
-        this.heartBeatId = setInterval(this._heartBeat.bind(this), 100);
+        this.heartBeatId = setInterval(this._heartBeat.bind(this), 10);
     }
 
     /**
@@ -322,8 +323,9 @@ export default class Phantom {
     }
 
     _heartBeat(): void {
-        if (this.commands.size === 0 && !this.isNoOpInProgress) {
+        if (!this.isNoOpInProgress) {
             this.isNoOpInProgress = true;
+            this.logger.debug('Sending NOOP command.');
             this.process.stdin.write(NOOP + os.EOL, 'utf8');
         }
     }
