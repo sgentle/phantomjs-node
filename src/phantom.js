@@ -39,7 +39,7 @@ const defaultLogger = createLogger();
 export default class Phantom {
     logger: Logger;
     isNoOpInProgress: boolean;
-    commands: Map<string, Command>;
+    commands: Map<number, Command>;
     events: Map<string, EventEmitter>;
     heartBeatId: number;
     process: child_process$ChildProcess;
