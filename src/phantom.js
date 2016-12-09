@@ -164,7 +164,7 @@ export default class Phantom {
             this.kill(`Error reading from stdout: ${e}`);
         });
 
-        this.heartBeatId = setInterval(this._heartBeat.bind(this), 10);
+        this.heartBeatId = setInterval(this._heartBeat.bind(this), 100);
     }
 
     /**

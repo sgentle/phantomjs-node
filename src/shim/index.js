@@ -152,8 +152,9 @@ function read() {
         } catch (e) {
             command.error = e.message;
             completeCommand(command);
+        } finally {
+            setTimeout(read, 0);
         }
-
     }
 }
 
@@ -279,8 +280,6 @@ function getOutsideListener(eventName, targetId) {
  */
 function completeCommand(command) {
     system.stdout.writeLine('>' + JSON.stringify(command));
-    // Prevent event-queue from clogging up by reads that block.
-    setTimeout(read, 0);
 }
 
 read();
