@@ -128,21 +128,7 @@ function read() {
             setTimeout(read, 100);
             return;
         }
-        let command = JSON.parse(line, function(key, value) {
-            if (value
-                && typeof value === 'string'
-                && value.substr(0, 8) === 'function'
-                && value.indexOf('[native code]') === -1) {
-                const startBody = value.indexOf('{') + 1;
-                const endBody = value.lastIndexOf('}');
-                const startArgs = value.indexOf('(') + 1;
-                const endArgs = value.indexOf(')');
-
-                // eslint-disable-next-line no-new-func
-                return new Function(value.substring(startArgs, endArgs), value.substring(startBody, endBody));
-            }
-            return value;
-        });
+        let command = JSON.parse(line);
 
         // Call here to look for transform key
         transform(command.params);
