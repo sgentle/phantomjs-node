@@ -95,10 +95,18 @@ phantom.create([], {
     phantomPath: '/path/to/phantomjs',
     logger: yourCustomLogger,
     logLevel: 'debug',
+    option: { env: { TZ="Asia/Singapore" }}
 }).then(...)
 ```
-
 The `logger` parameter should be a `logger` object containing your logging functions. The `logLevel` parameter should be log level like `"warn"` or `"debug"` (It uses the same log levels as `npm`), and will be ignored if `logger` is set. Have a look at the `logger` property below for more information about these two parameters.
+The `option` parameter may be used to specify additional options when spawning the phantomjs process from `node`, with these defaults:
+```js
+{
+  cwd: undefined,
+  env: process.env
+}
+```
+More details can be found [here](https://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options)
 
 ### `phantom#createPage`
 
