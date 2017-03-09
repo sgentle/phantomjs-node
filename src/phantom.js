@@ -17,7 +17,7 @@ type Response = {pageId: string}
 const defaultLogLevel = process.env.DEBUG === 'true' ? 'debug' : 'info';
 const defaultOption = {
     cwd: void 0,
-    env: process.env
+    env: process.env,
 };
 const NOOP = 'NOOP';
 
@@ -58,12 +58,13 @@ export default class Phantom {
      * @param [logLevel] log level to apply on the logger (if unset or default)
      */
     constructor(args?: string[] = [],
-        {phantomPath = phantomjs.path, logger = defaultLogger, logLevel = defaultLogLevel, option = defaultOption}: Config =
+        {phantomPath = phantomjs.path, logger = defaultLogger, logLevel = defaultLogLevel, option = defaultOption}
+            :Config =
         {
             phantomPath: phantomjs.path,
             logger: defaultLogger,
             logLevel: defaultLogLevel,
-            option: defaultOption
+            option: defaultOption,
         }) {
         if (!Array.isArray(args)) {
             throw new Error('Unexpected type of parameters. Expecting args to be array.');
