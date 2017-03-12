@@ -7,6 +7,7 @@ import Phantom from './phantom';
  * @param args command args to pass to phantom process
  * @param [config] configuration object
  * @param [config.phantomPath] path to phantomjs executable
+ * @param [config.option] additional options when spawning the phantomjs process
  * @param [config.logger] object containing functions used for logging
  * @param [config.logLevel] log level to apply on the logger (if unset or default)
  * @returns {Promise}

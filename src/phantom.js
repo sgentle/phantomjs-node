@@ -15,6 +15,10 @@ import OutObject from './out_object';
 type Response = {pageId: string}
 
 const defaultLogLevel = process.env.DEBUG === 'true' ? 'debug' : 'info';
+const defaultOption = {
+    cwd: void 0,
+    env: process.env,
+};
 const NOOP = 'NOOP';
 
 /**
@@ -49,15 +53,18 @@ export default class Phantom {
      *
      * @param args command args to pass to phantom process
      * @param [phantomPath] path to phantomjs executable
+     * @param [config.option] additional options when spawning the phantomjs process
      * @param [logger] object containing functions used for logging
      * @param [logLevel] log level to apply on the logger (if unset or default)
      */
     constructor(args?: string[] = [],
-        {phantomPath = phantomjs.path, logger = defaultLogger, logLevel = defaultLogLevel}: Config =
+        {phantomPath = phantomjs.path, logger = defaultLogger, logLevel = defaultLogLevel, option = defaultOption}
+            :Config =
         {
             phantomPath: phantomjs.path,
             logger: defaultLogger,
             logLevel: defaultLogLevel,
+            option: defaultOption,
         }) {
         if (!Array.isArray(args)) {
             throw new Error('Unexpected type of parameters. Expecting args to be array.');
@@ -87,7 +94,7 @@ export default class Phantom {
         const pathToShim = path.normalize(__dirname + '/shim/index.js');
         this.logger.debug(`Starting ${phantomPath} ${args.concat([pathToShim]).join(' ')}`);
 
-        this.process = spawn(phantomPath, args.concat([pathToShim]));
+        this.process = spawn(phantomPath, args.concat([pathToShim]), option);
         this.process.stdin.setDefaultEncoding('utf-8');
 
         this.commands = new Map();
