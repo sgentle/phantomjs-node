@@ -93,7 +93,7 @@ export default class Phantom {
         this.commands = new Map();
         this.events = new Map();
 
-        this.process.stdout.pipe(split()).on('data', data => {
+        this.process.stdout.on('data', data => {
             const message = data.toString('utf8');
             if (message[0] === '>') {
                 // Server end has finished NOOP, lets allow NOOP again..
@@ -103,33 +103,38 @@ export default class Phantom {
                     return;
                 }
                 const json = message.substr(1);
-                this.logger.debug('Parsing: %s', json);
 
-                const parsedJson = JSON.parse(json);
-                const command = this.commands.get(parsedJson.id);
+                if(json[0] === '{'){
+                    this.logger.debug('Parsing: %s', json);
 
-                if (command != null) {
-                    const deferred = command.deferred;
+                    const parsedJson = JSON.parse(json);
+                    const command = this.commands.get(parsedJson.id);
 
-                    if (deferred != null) {
-                        if (parsedJson.error === undefined) {
-                            deferred.resolve(parsedJson.response);
-                        } else {
-                            deferred.reject(new Error(parsedJson.error));
+                    if (command != null) {
+                        // We have to handle buffers targeted at stdout separately
+                        if(!command.params.includes('/dev/stdout/')) {
+                            const deferred = command.deferred;
+
+                            if (deferred != null) {
+                                if (parsedJson.error === undefined) {
+                                    deferred.resolve(parsedJson.response);
+                                } else {
+                                    deferred.reject(new Error(parsedJson.error));
+                                }
+                            } else {
+                                this.logger.error('deferred object not found for command.id: ' + parsedJson.id);
+                            }
+
+                            this.commands.delete(command.id);
                         }
+
                     } else {
-                        this.logger.error('deferred object not found for command.id: ' + parsedJson.id);
+                        this.logger.error('command not found for command.id: ' + parsedJson.id);
                     }
-
-                    this.commands.delete(command.id);
-                } else {
-                    this.logger.error('command not found for command.id: ' + parsedJson.id);
                 }
-
 
             } else if (message.indexOf('<event>') === 0) {
                 const json = message.substr(7);
-                this.logger.debug('Parsing: %s', json);
                 const event = JSON.parse(json);
 
                 const emitter = this.events.get(event.target);
@@ -137,7 +142,18 @@ export default class Phantom {
                     emitter.emit.apply(emitter, [event.type].concat(event.args));
                 }
             } else if (message && message.length > 0) {
-                this.logger.info(message);
+                this.commands.forEach(command => {
+                    if (command.params.includes('/dev/stdout/')) {
+                        const deferred = command.deferred;
+                        if (deferred) {
+                            deferred.resolve(data);
+                        } else {
+                            deferred.reject();
+                        }
+
+                        return;
+                    }
+                });
             }
         });
 
