@@ -27,7 +27,7 @@
   "dependencies": {
     "phantomjs-prebuilt": "^2.1.4",
     "split": "^1.0.0",
-    "winston": "^2.2.0"
+    "winston": "^2.3.1"
   },
   "devDependencies": {
     "babel-core": "^6.7.7",
