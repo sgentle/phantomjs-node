@@ -68,16 +68,16 @@ export default class Phantom {
                 'This generally means something went wrong when installing phantomjs-prebuilt. Exiting.');
         }
 
-        if (typeof logger !== 'object') {
-            throw new Error('logger must be ba valid object.');
+        if (!logger.info && !logger.debug && !logger.error && !logger.warn ) {
+            throw new Error('logger must be a valid object.');
         }
 
-        logger.debug = logger.debug || (() => undefined);
-        logger.info = logger.info || (() => undefined);
-        logger.warn = logger.warn || (() => undefined);
-        logger.error = logger.error || (() => undefined);
-
-        this.logger = logger;
+        this.logger = {
+            info: logger.info && ((...args) => logger.info(...args)) || (() => undefined),
+            debug: logger.debug && ((...args) => logger.debug(...args)) || (() => undefined),
+            error: logger.error && ((...args) => logger.error(...args)) || (() => undefined),
+            warn: logger.warn && ((...args) => logger.warn(...args)) || (() => undefined),
+        };
 
         if (logLevel !== defaultLogLevel) {
             this.logger = createLogger();
