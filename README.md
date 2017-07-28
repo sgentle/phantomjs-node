@@ -1,5 +1,5 @@
-phantom - Fast NodeJS API for PhantomJS
-========
+# phantom - Fast NodeJS API for PhantomJS
+
 [![NPM](https://nodei.co/npm/phantom.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/phantom/)
 
 [![NPM Version][npm-image]][npm-url]
@@ -8,6 +8,44 @@ phantom - Fast NodeJS API for PhantomJS
 [![Code Coverage][codecov-image]][codecov-url]
 [![Dependencies][dependencies-image]][dependencies-url]
 [![Node Version][node-image]][node-url]
+
+## Table of contents
+- [phantom - Fast NodeJS API for PhantomJS](#phantom---fast-nodejs-api-for-phantomjs)
+- [Hello World](#super-easy-to-use)
+- [Installation](#installation)
+    * [Node v6.x and later](#node-v6x-and-later)
+    * [Node v5.x](#node-v5x)
+    * [Versions older than 5.x](#versions-older-than-5x)
+- [How does it work?](#how-does-it-work)
+- [Migration](#migration)
+    * [Migrating from 2.x](#migrating-from-2x)
+    * [Migrating from 1.0.x](#migrating-from-10x)
+- [API](#api)
+    * [phantom object](#phantom-object)
+        * [phantom#create](#phantomcreate)
+        * [phantom#createPage](#phantomcreatepage)
+        * [phantom#exit](#phantomexit)
+        * [phantom#kill](#phantomkill)
+        * [phantom#logger](#phantomlogger)
+    * [page object](#page-object)
+        * [page#setting](#pagesetting)
+        * [page#property](#pageproperty)
+        * [page#on](#pageon)
+        * [page#off](#pageoff)
+        * [page#evaluate](#pageevaluate)
+        * [page#evaluateAsync](#pageevaluateasync)
+        * [page#evaluateJavaScript](#pageevaluatejavascript)
+        * [page#switchToFrame](#pageswitchtoframe)
+        * [page#switchToMainFrame](#pageswitchtomainframe)
+        * [page#uploadFile](#pageuploadfile)
+        * [page#defineMethod](#pagedefinemethod)
+        * [page#invokeAsyncMethod](#pageinvokeasyncmethod)
+        * [page#invokeMethod](#pageinvokemethod)
+- [Pooling](#pooling)
+- [Tests](#tests)
+- [Contributing](#contributing)
+- [People](#people)
+- [License](#license)
 
 
 ## Super easy to use
@@ -50,7 +88,8 @@ To use version 3.x you need to have at least Node v5+. You can install it using
 $ npm install phantom@3 --save
 ```
 
-### Versions _older_ than 5.x, install with
+### Versions _older_ than 5.x
+Install with
 
 ```bash
 $ npm install phantom@2 --save
@@ -62,19 +101,23 @@ $ npm install phantom@2 --save
 
   v2.0.x has been completely rewritten to use `sysin` and `sysout` pipes to communicate with the phantomjs process. It works out of the box with `cluster` and `pm2`. If you want to see the messages that are sent try adding `DEBUG=true` to your execution, ie. `DEBUG=true node path/to/test.js`. The new code is much cleaner and simpler. PhantomJS is started with a shim which proxies all messages to the `page` or `phantom` object.
 
-## Migrating from 2.x
+## Migration
+
+### Migrating from 2.x
 
 Going forward, version phantom@3 will only support Node v5 and above. This adds the extra benefit of less code and faster performance.
 
-## Migrating from 1.0.x
+### Migrating from 1.0.x
 
   Version 2.0.x is not backward compatible with previous versions. Most notability, method calls do not take a callback function anymore. Since `node` supports `Promise`, each of the methods return a promise. Instead of writing `page.open(url, function(){})` you would have to write `page.open(url).then(function(){})`.
 
   The API is much more consistent now. All properties can be read with `page.property(key)` and settings can be read with `page.setting(key)`. See below for more example.
 
-## `phantom` object API
+## API
 
-### `phantom#create`
+### `phantom` object
+
+#### `phantom#create`
 
 To create a new instance of `phantom` use `phantom.create()` which returns a `Promise` which should resolve with a `phantom` object.
 If you want add parameters to the phantomjs process you can do so by doing:
@@ -101,7 +144,7 @@ phantom.create([], {
 
 The `logger` parameter should be a `logger` object containing your logging functions. The `logLevel` parameter should be log level like `"warn"` or `"debug"` (It uses the same log levels as `npm`), and will be ignored if `logger` is set. Have a look at the `logger` property below for more information about these two parameters.
 
-### `phantom#createPage`
+#### `phantom#createPage`
 
 To create a new `page`, you have to call `createPage()`:
 
@@ -122,13 +165,13 @@ phantom.create()
     });
 ```
 
-### `phantom#exit`
+#### `phantom#exit`
 
 Sends an exit call to phantomjs process.
 
 Make sure to call it on the phantom instance to kill the phantomjs process. Otherwise, the process will never exit.
 
-### `phantom#kill`
+#### `phantom#kill`
 
 Kills the underlying phantomjs process (by sending `SIGKILL` to it).
 
@@ -136,7 +179,7 @@ It may be a good idea to register handlers to `SIGTERM` and `SIGINT` signals wit
 
 However, be aware that phantomjs process will get detached (and thus won't exit) if node process that spawned it receives `SIGKILL`!
 
-### `phantom#logger`
+#### `phantom#logger`
 
 The property containing the [winston](https://www.npmjs.com/package/winston) `logger` used by a `phantom` instance. You may change parameters like verbosity or redirect messages to a file with it.
 
@@ -157,11 +200,11 @@ phantom.create([], { logger: { warn: log, debug: nolog, error: log } }).then(fun
 });
 ```
 
-## `page` object API
+#### `page` object
 
   The `page` object that is returned with `#createPage` is a proxy that sends all methods to `phantom`. Most method calls should be identical to PhantomJS API. You must remember that each method returns a `Promise`.
 
-### `page#setting`
+#### `page#setting`
 
 `page.settings` can be accessed via `page.setting(key)` or set via `page.setting(key, value)`. Here is an example to read `javascriptEnabled` property.
 
@@ -171,7 +214,7 @@ page.setting('javascriptEnabled').then(function(value){
 });
 ```
 
-### `page#property`
+#### `page#property`
 
 
   Page properties can be read using the `#property(key)` method.
@@ -225,7 +268,7 @@ outObj.property('urls').then(function(urls){
 
 ```
 
-### `page#on`
+#### `page#on`
 
 By using `on(event, [runOnPhantom=false],listener, args*)`, you can listen to the events the page emits.
 
@@ -257,11 +300,11 @@ The same as in property, you can pass additional params to the function in the s
 
 You cannot use `#property()` and `#on()` at the same time, because it would conflict. Property just sets the function in phantomjs, while `#on()` manages the event in a different way.
 
-### `page#off`
+#### `page#off`
 
 `#off(event)` is usefull to remove all the event listeners set by `#on()` for ans specific event.
 
-### `page#evaluate`
+#### `page#evaluate`
 
 Using `#evaluate()` is similar to passing a function above. For example, to return HTML of an element you can do:
 
@@ -273,7 +316,7 @@ page.evaluate(function() {
 });
 ```
 
-### `page#evaluateAsync`
+#### `page#evaluateAsync`
 
 Same as `#evaluate()`, but function will be executed asynchronously and there is no return value. You can specify delay of execution.
 
@@ -283,7 +326,7 @@ page.evaluateAsync(function(apiUrl) {
 }, 0, "http://mytestapi.com")
 ```
 
-### `page#evaluateJavaScript`
+#### `page#evaluateJavaScript`
 
 Evaluate a function contained in a string. It is similar to `#evaluate()`, but the function can't take any arguments. This example does the same thing as the example of `#evaluate()`:
 
@@ -293,7 +336,7 @@ page.evaluateJavaScript('function() { return document.getElementById(\'foo\').in
 });
 ```
 
-### `page#switchToFrame`
+#### `page#switchToFrame`
 
 Switch to the frame specified by a frame name or a frame position:
 
@@ -303,7 +346,7 @@ page.switchToFrame(framePositionOrName).then(function() {
 });
 ```
 
-### `page#switchToMainFrame`
+#### `page#switchToMainFrame`
 
 Switch to the main frame of the page:
 
@@ -313,7 +356,7 @@ page.switchToMainFrame().then(function() {
 });
 ```
 
-### `page#uploadFile`
+#### `page#uploadFile`
 
 A file can be inserted into file input fields using the `#uploadFile(selector, file)` method.
 
@@ -323,10 +366,7 @@ page.uploadFile('#selector', '/path/to/file').then(function() {
 });
 ```
 
-## Advanced
-Methods below are for advanced users. Most people won't need these methods.
-
-### `page#defineMethod`
+#### `page#defineMethod`
 
 A method can be defined using the `#defineMethod(name, definition)` method.
 
@@ -336,7 +376,7 @@ page.defineMethod('getZoomFactor', function() {
 });
 ```
 
-### `page#invokeAsyncMethod`
+#### `page#invokeAsyncMethod`
 
 An asynchronous method can be invoked using the `#invokeAsyncMethod(method, arg1, arg2, arg3...)` method.
 
@@ -346,7 +386,7 @@ page.invokeAsyncMethod('open', 'http://phantomjs.org/').then(function(status) {
 });
 ```
 
-### `page#invokeMethod`
+#### `page#invokeMethod`
 
 A method can be invoked using the `#invokeMethod(method, arg1, arg2, arg3...)` method.
 
