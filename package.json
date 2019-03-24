@@ -44,7 +44,7 @@
     "flow-bin": "^0.95.1",
     "flow-copy-source": "^2.0.3",
     "jest": "^23.6.0",
-    "jest-cli": "^23.6.0",
+    "jest-cli": "^24.5.0",
     "npm-watch": "^0.6.0",
     "prettier-eslint": "^8.8.2",
     "rimraf": "^2.6.3"
